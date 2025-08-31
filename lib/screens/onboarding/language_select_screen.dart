@@ -135,7 +135,7 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen> {
     return Obx(() {
       if (_languageController.isLoading) {
         return Scaffold(
-          backgroundColor: const Color(0xFFF9F9F8),
+          backgroundColor: const Color(0xFFFAFAF8),
           body: SafeArea(
             child: Center(
               child: Column(
