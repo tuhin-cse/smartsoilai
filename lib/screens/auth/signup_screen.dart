@@ -24,6 +24,7 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isLoading = false;
   bool _showVerificationCode = false;
   bool _isCodeSent = false;
+  bool _autoValidate = false;
 
   @override
   void dispose() {
@@ -35,11 +36,35 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
+  @override
+  void initState() {
+    super.initState();
+    // Add listeners to trigger validation on text change
+    _fullNameController.addListener(_onFieldChanged);
+    _emailController.addListener(_onFieldChanged);
+    _passwordController.addListener(_onFieldChanged);
+    _confirmPasswordController.addListener(_onFieldChanged);
+    _verificationCodeController.addListener(_onFieldChanged);
+  }
+
+  void _onFieldChanged() {
+    if (_autoValidate) {
+      _formKey.currentState?.validate();
+    }
+  }
+
   void _handleBack() {
     Get.back();
   }
 
   Future<void> _handleSignup() async {
+    // Enable auto validation after first attempt
+    if (!_autoValidate) {
+      setState(() {
+        _autoValidate = true;
+      });
+    }
+
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -215,6 +240,9 @@ class _SignupScreenState extends State<SignupScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Form(
                         key: _formKey,
+                        autovalidateMode: _autoValidate 
+                            ? AutovalidateMode.onUserInteraction 
+                            : AutovalidateMode.disabled,
                         child: Column(
                           children: [
                             // Full Name Input

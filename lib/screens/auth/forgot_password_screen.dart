@@ -119,7 +119,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final EdgeInsets safeAreaInsets = mediaQuery.padding;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F8),
+      backgroundColor: const Color(0xFFFAFAF8),
       body: Column(
         children: [
           // Header with back button and logo
@@ -131,14 +131,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               bottom: 16,
             ),
             decoration: const BoxDecoration(
-              color: Color(0xFFF9F9F8),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x40A6A9B7),
-                  blurRadius: 80,
-                  offset: Offset(0, 8),
-                ),
-              ],
+              color: Color(0xFFFAFAF8),
+             
             ),
             child: Row(
               children: [
