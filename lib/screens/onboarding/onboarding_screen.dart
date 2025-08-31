@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'dart:async';
 import '../../constants/app_colors.dart';
 import '../../services/storage_service.dart';
 
@@ -25,7 +26,10 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
+
   int currentStep = 0;
+  late PageController _pageController;
+  Timer? _autoSlideTimer;
 
   final List<OnboardingStep> onboardingSteps = [
     OnboardingStep(
@@ -36,17 +40,43 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
     OnboardingStep(
       id: 2,
-      image: 'assets/images/intro/img2.png',
+      image: 'assets/images/intro/img2.jpg',
       title: 'We tell you what your soil needs. You grow what you want',
       description: 'Get clear insights on soil health, nutrients, and crop fit so you can grow what you love with confidence, naturally and productively.',
     ),
     OnboardingStep(
       id: 3,
-      image: 'assets/images/intro/img3.png',
+      image: 'assets/images/intro/img3.jpg',
       title: 'Catch soil problems early before they cost you',
       description: 'Detect soil issues early with smart analysis. Prevent crop damage, reduce costs, and keep your farm healthy from the ground up.',
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: currentStep);
+    _startAutoSlide();
+  }
+
+  void _startAutoSlide() {
+    _autoSlideTimer?.cancel();
+    _autoSlideTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (currentStep < onboardingSteps.length - 1) {
+        _pageController.nextPage(duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+      } else {
+        // Loop back to first step
+        _pageController.animateToPage(0, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _autoSlideTimer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
 
   Future<void> completeOnboarding() async {
     try {
@@ -59,11 +89,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> handleNext() async {
     if (currentStep < onboardingSteps.length - 1) {
-      setState(() {
-        currentStep++;
-      });
+      _pageController.nextPage(duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
     } else {
-      // Complete onboarding and navigate to location access screen
       await completeOnboarding();
       Get.offNamed('/location-access');
     }
@@ -77,20 +104,48 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentStepData = onboardingSteps[currentStep];
-
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
+          // Background Image with PageView
           Positioned.fill(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 500),
-              child: Image.asset(
-                currentStepData.image,
-                key: ValueKey(currentStepData.id),
-                fit: BoxFit.cover,
-              ),
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: onboardingSteps.length,
+              onPageChanged: (index) {
+                setState(() {
+                  currentStep = index;
+                });
+                _startAutoSlide();
+              },
+              itemBuilder: (context, index) {
+                final step = onboardingSteps[index];
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(
+                      step.image,
+                      key: ValueKey(step.id),
+                      fit: BoxFit.cover,
+                      alignment: Alignment.bottomCenter,
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withOpacity(0.4),
+                            Colors.black.withOpacity(0.1),
+                            Colors.transparent,
+                          ],
+                          stops: const [0.0, 0.3, 0.7],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
 
@@ -113,7 +168,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   // Title
                   Text(
-                    currentStepData.title,
+                    onboardingSteps[currentStep].title,
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -128,7 +183,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: Text(
-                      currentStepData.description,
+                      onboardingSteps[currentStep].description,
                       style: const TextStyle(
                         fontSize: 14,
                         color: AppColors.textSecondary,
