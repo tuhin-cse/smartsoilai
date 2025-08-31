@@ -1,7 +1,7 @@
 class AppConfig {
   // static const String baseUrl = 'http://192.168.1.111:3000'; // Replace with your actual API URL
   static const String baseUrl =
-      'https://backend.smartsoilai.com'; // Replace with your actual API URL
+      'https://soilai.ezystore.xyz'; // Replace with your actual API URL
 
   // Timeout settings
   static const int connectTimeoutMs = 15000;

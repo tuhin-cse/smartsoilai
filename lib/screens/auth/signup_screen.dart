@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smartsoilai/widgets/buttons.dart';
+import 'package:pinput/pinput.dart';
+import 'dart:async';
 
 import '../../controllers/auth_controller.dart';
 import '../../widgets/input.dart';
@@ -18,12 +20,9 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _verificationCodeController = TextEditingController();
 
   String _selectedGender = '';
   bool _isLoading = false;
-  bool _showVerificationCode = false;
-  bool _isCodeSent = false;
   bool _autoValidate = false;
 
   @override
@@ -32,7 +31,6 @@ class _SignupScreenState extends State<SignupScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _verificationCodeController.dispose();
     super.dispose();
   }
 
@@ -44,7 +42,6 @@ class _SignupScreenState extends State<SignupScreen> {
     _emailController.addListener(_onFieldChanged);
     _passwordController.addListener(_onFieldChanged);
     _confirmPasswordController.addListener(_onFieldChanged);
-    _verificationCodeController.addListener(_onFieldChanged);
   }
 
   void _onFieldChanged() {
@@ -74,39 +71,17 @@ class _SignupScreenState extends State<SignupScreen> {
     try {
       final authController = Get.find<AuthController>();
 
-      // Send verification code first if not sent
-      if (!_isCodeSent) {
-        await authController.signup(
-          _emailController.text,
-          _passwordController.text,
-          _fullNameController.text,
-          gender: _selectedGender,
-        );
-        
-        setState(() {
-          _showVerificationCode = true;
-          _isCodeSent = true;
-        });
-      } else {
-        // Verify code and complete signup
-        if (_verificationCodeController.text.length != 6) {
-          Get.snackbar('Error', 'Please enter the 6-digit verification code');
-          return;
-        }
-
-        await authController.verifySignupOtp(
-          _emailController.text,
-          _verificationCodeController.text,
-        );
-
-        if (authController.isAuthenticated) {
-          Get.offNamed('/main-navigation');
-        } else {
-          Get.snackbar(
-            'Signup Failed',
-            'Unable to verify account. Please try again.',
-          );
-        }
+      // Send verification code
+      await authController.signup(
+        _emailController.text,
+        _passwordController.text,
+        _fullNameController.text,
+        gender: _selectedGender,
+      );
+      
+      // Show OTP dialog
+      if (mounted) {
+        _showOtpDialog();
       }
     } catch (error) {
       // Error handling is done in the controller
@@ -115,6 +90,17 @@ class _SignupScreenState extends State<SignupScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  void _showOtpDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _OtpDialog(
+        email: _emailController.text,
+        onResendOtp: _resendVerificationCode,
+      ),
+    );
   }
 
   Future<void> _resendVerificationCode() async {
@@ -372,49 +358,12 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
 
                             // Verification Code Field (shown after initial signup attempt)
-                            if (_showVerificationCode) ...[
-                              const SizedBox(height: 20),
-                              CustomFormField(
-                                label: 'Verification Code',
-                                hintText: 'Enter 6-digit code',
-                                controller: _verificationCodeController,
-                                keyboardType: TextInputType.number,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter the verification code';
-                                  }
-                                  if (value.length != 6) {
-                                    return 'Verification code must be 6 digits';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: 12),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: GestureDetector(
-                                  onTap: _resendVerificationCode,
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 8),
-                                    child: Text(
-                                      'Resend Code',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Color(0xFF62BE24),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                            // Removed - now using dialog
 
                             const SizedBox(height: 40),
 
                             PrimaryButton(
-                              title: _showVerificationCode
-                                  ? "Verify & Sign Up"
-                                  : "Send Verification Code",
+                              title: "Send Verification Code",
                               onPressed: _isLoading ? null : _handleSignup,
                             ),
                             const SizedBox(height: 32),
@@ -423,59 +372,57 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                     ),
 
-                    // Divider (only show if not in verification mode)
-                    if (!_showVerificationCode) ...[
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Divider(
-                                color: Color(0xFFE8EBF0),
-                                thickness: 1,
+                    // Divider
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Divider(
+                              color: Color(0xFFE8EBF0),
+                              thickness: 1,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              'Or Sign Up With',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF83888D),
                               ),
                             ),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16),
-                              child: Text(
-                                'Or Sign Up With',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF83888D),
-                                ),
-                              ),
+                          ),
+                          Expanded(
+                            child: Divider(
+                              color: Color(0xFFE8EBF0),
+                              thickness: 1,
                             ),
-                            Expanded(
-                              child: Divider(
-                                color: Color(0xFFE8EBF0),
-                                thickness: 1,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 24),
+                    ),
+                    const SizedBox(height: 24),
 
-                      // Social Signup Buttons
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          children: [
-                            _buildSocialButton(
-                              title: 'Sign up with Google',
-                              imagePath: 'assets/images/google.png',
-                              onPressed: () => _handleSocialSignup('Google'),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildSocialButton(
-                              title: 'Sign up with Facebook',
-                              imagePath: 'assets/images/facebook.png',
-                              onPressed: () => _handleSocialSignup('Facebook'),
-                            ),
-                          ],
-                        ),
+                    // Social Signup Buttons
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        children: [
+                          _buildSocialButton(
+                            title: 'Sign up with Google',
+                            imagePath: 'assets/images/google.png',
+                            onPressed: () => _handleSocialSignup('Google'),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildSocialButton(
+                            title: 'Sign up with Facebook',
+                            imagePath: 'assets/images/facebook.png',
+                            onPressed: () => _handleSocialSignup('Facebook'),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
 
                     // Login Link
                     Padding(
@@ -547,6 +494,351 @@ class _SignupScreenState extends State<SignupScreen> {
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OtpDialog extends StatefulWidget {
+  final String email;
+  final VoidCallback onResendOtp;
+
+  const _OtpDialog({
+    required this.email,
+    required this.onResendOtp,
+  });
+
+  @override
+  State<_OtpDialog> createState() => _OtpDialogState();
+}
+
+class _OtpDialogState extends State<_OtpDialog> {
+  final TextEditingController _otpController = TextEditingController();
+  bool _isVerifying = false;
+  bool _isResending = false;
+  Timer? _debounceTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen to text changes to cancel pending verification
+    _otpController.addListener(() {
+      if (_otpController.text.length < 6) {
+        _debounceTimer?.cancel();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    _otpController.dispose();
+    super.dispose();
+  }
+
+  void _handleOtpCompleted(String otp) {
+    // Cancel any existing timer
+    _debounceTimer?.cancel();
+    
+    // Set a new timer to debounce rapid successive calls
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      _verifyOtp(otp);
+    });
+  }
+
+  Future<void> _verifyOtp(String otp) async {
+    // Prevent multiple simultaneous API calls
+    if (otp.length != 6 || _isVerifying) return;
+
+    setState(() {
+      _isVerifying = true;
+    });
+
+    try {
+      final authController = Get.find<AuthController>();
+      
+      await authController.verifySignupOtp(widget.email, otp);
+
+      if (mounted && authController.isAuthenticated) {
+        Navigator.of(context).pop(); // Close dialog
+        Get.offNamed('/main-navigation');
+      } else if (mounted) {
+        // Clear the input on failure
+        _otpController.clear();
+      }
+    } catch (error) {
+      if (mounted) {
+        // Clear the input on error
+        _otpController.clear();
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isVerifying = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleResendOtp() async {
+    setState(() {
+      _isResending = true;
+    });
+
+    try {
+      widget.onResendOtp();
+      Get.snackbar(
+        'Code Sent',
+        'Verification code has been resent to your email.',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: const Color(0xFF62BE24),
+        colorText: Colors.white,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isResending = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    // Responsive sizing
+    final dialogWidth = screenWidth > 400 ? 350.0 : screenWidth * 0.9;
+    final pinSize = screenWidth > 400 ? 50.0 : (screenWidth * 0.9 - 100) / 6;
+    
+    final defaultPinTheme = PinTheme(
+      width: pinSize,
+      height: pinSize,
+      textStyle: TextStyle(
+        fontSize: pinSize * 0.4,
+        fontWeight: FontWeight.w600,
+        color: const Color(0xFF374151),
+      ),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFFD1D5DB), width: 1.5),
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+    );
+
+    final focusedPinTheme = defaultPinTheme.copyWith(
+      decoration: defaultPinTheme.decoration!.copyWith(
+        border: Border.all(color: const Color(0xFF10B981), width: 2),
+        color: const Color(0xFFF0FDF4),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF10B981).withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+    );
+
+    final submittedPinTheme = defaultPinTheme.copyWith(
+      decoration: defaultPinTheme.decoration!.copyWith(
+        color: const Color(0xFFECFDF5),
+        border: Border.all(color: const Color(0xFF10B981), width: 1.5),
+      ),
+    );
+
+    final errorPinTheme = defaultPinTheme.copyWith(
+      decoration: defaultPinTheme.decoration!.copyWith(
+        border: Border.all(color: const Color(0xFFF87171), width: 2),
+        color: const Color(0xFFFEF2F2),
+      ),
+    );
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: const EdgeInsets.all(20),
+      child: Container(
+        width: dialogWidth,
+        constraints: BoxConstraints(
+          maxHeight: screenHeight * 0.8,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header with close button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const SizedBox(width: 32), // Balance the close button
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.email_outlined,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F4F6),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          size: 18,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Title
+                const Text(
+                  'Verify Your Email',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF111827),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+
+                // Description
+                Text(
+                  'Enter the 6-digit code sent to',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  widget.email,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF10B981),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 30),
+
+                // OTP Input
+                Pinput(
+                  controller: _otpController,
+                  length: 6,
+                  defaultPinTheme: defaultPinTheme,
+                  focusedPinTheme: focusedPinTheme,
+                  submittedPinTheme: submittedPinTheme,
+                  errorPinTheme: errorPinTheme,
+                  pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
+                  showCursor: true,
+                  onCompleted: _handleOtpCompleted,
+                  enabled: !_isVerifying,
+                  hapticFeedbackType: HapticFeedbackType.selectionClick,
+                  cursor: Container(
+                    width: 2,
+                    height: 20,
+                    color: const Color(0xFF10B981),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Loading indicator
+                if (_isVerifying)
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Column(
+                      children: [
+                        const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Verifying...',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // Resend section
+                if (!_isVerifying) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Didn\'t receive the code? ',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: _isResending ? null : _handleResendOtp,
+                        child: Text(
+                          _isResending ? 'Sending...' : 'Resend',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: _isResending 
+                                ? Colors.grey[400]
+                                : const Color(0xFF10B981),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
     );
