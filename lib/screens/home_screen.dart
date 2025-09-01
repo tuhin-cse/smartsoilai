@@ -33,22 +33,23 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final result = await showModalBottomSheet<ImageSource>(
         context: context,
-        builder: (context) => SafeArea(
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Camera'),
-                onTap: () => Navigator.pop(context, ImageSource.camera),
+        builder:
+            (context) => SafeArea(
+              child: Wrap(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.camera_alt),
+                    title: const Text('Camera'),
+                    onTap: () => Navigator.pop(context, ImageSource.camera),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.photo_library),
+                    title: const Text('Photo Library'),
+                    onTap: () => Navigator.pop(context, ImageSource.gallery),
+                  ),
+                ],
               ),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Photo Library'),
-                onTap: () => Navigator.pop(context, ImageSource.gallery),
-              ),
-            ],
-          ),
-        ),
+            ),
       );
 
       if (result != null) {
@@ -95,17 +96,20 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       // TODO: Process image with AI API
       await Future.delayed(const Duration(seconds: 2)); // Simulate processing
-      
+
       // Navigate to disease analysis screen
-      Get.toNamed('/disease-analysis', arguments: {
-        'imagePath': imagePath,
-        'analysis': {
-          'disease': 'Leaf Blight',
-          'confidence': 0.89,
-          'severity': 'Moderate',
-          'treatment': 'Apply fungicide spray',
+      Get.toNamed(
+        '/disease-analysis',
+        arguments: {
+          'imagePath': imagePath,
+          'analysis': {
+            'disease': 'Leaf Blight',
+            'confidence': 0.89,
+            'severity': 'Moderate',
+            'treatment': 'Apply fungicide spray',
+          },
         },
-      });
+      );
     } catch (e) {
       Get.snackbar(
         'Analysis Failed',
@@ -164,21 +168,23 @@ class _HomeScreenState extends State<HomeScreen> {
                       CircleAvatar(
                         radius: 24,
                         backgroundColor: AppColors.primary400,
-                        backgroundImage: authController.profileImage != null
-                            ? NetworkImage(authController.profileImage!)
-                            : null,
-                        child: authController.profileImage == null
-                            ? const Icon(
-                                Icons.person,
-                                color: Colors.white,
-                                size: 24,
-                              )
-                            : null,
+                        backgroundImage:
+                            authController.profileImage != null
+                                ? NetworkImage(authController.profileImage!)
+                                : null,
+                        child:
+                            authController.profileImage == null
+                                ? const Icon(
+                                  Icons.person,
+                                  color: Colors.white,
+                                  size: 24,
+                                )
+                                : null,
                       ),
                     ],
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Slider Cards (Weather + Satellite)
                   SizedBox(
                     height: 240,
@@ -224,7 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              
+
                               // Temperature and weather
                               Row(
                                 children: [
@@ -239,14 +245,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
                                           children: [
                                             Text(
                                               'H: 23°',
                                               style: TextStyle(
-                                                color: Colors.white.withOpacity(0.8),
+                                                color: Colors.white.withOpacity(
+                                                  0.8,
+                                                ),
                                                 fontSize: 13,
                                               ),
                                             ),
@@ -261,7 +270,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Text(
                                           'L: 14°',
                                           style: TextStyle(
-                                            color: Colors.white.withOpacity(0.8),
+                                            color: Colors.white.withOpacity(
+                                              0.8,
+                                            ),
                                             fontSize: 13,
                                           ),
                                         ),
@@ -271,7 +282,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ],
                               ),
                               const SizedBox(height: 12),
-                              
+
                               // Weather details
                               Row(
                                 children: [
@@ -282,10 +293,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ],
                               ),
                               const SizedBox(height: 12),
-                              
+
                               // Time indicators
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     '5:20 am',
@@ -319,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                         ),
-                        
+
                         // Satellite Card
                         Container(
                           margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -340,18 +352,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                   height: double.infinity,
                                   decoration: const BoxDecoration(
                                     image: DecorationImage(
-                                      image: AssetImage('assets/images/field.png'),
+                                      image: AssetImage(
+                                        'assets/images/field.png',
+                                      ),
                                       fit: BoxFit.cover,
                                     ),
                                   ),
                                 ),
-                                
+
                                 // Live indicator
                                 Positioned(
                                   top: 16,
                                   right: 16,
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.red,
                                       borderRadius: BorderRadius.circular(12),
@@ -380,7 +397,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ),
                                 ),
-                                
+
                                 // Field info overlay
                                 Positioned(
                                   bottom: 16,
@@ -409,8 +426,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  
+                  // const SizedBox(height: 16),
+
                   // Page Indicators
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -424,7 +441,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          
+
           // Main Content Area
           Expanded(
             child: Container(
@@ -470,7 +487,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Revive Your Fields & Crops Section
                       Container(
                         width: double.infinity,
@@ -539,7 +556,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  
+
   Widget _buildWeatherDetail(String label, String value) {
     return Expanded(
       child: Column(
@@ -591,11 +608,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: AppColors.primary100,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Image.asset(
-                iconPath,
-                width: 24,
-                height: 24,
-              ),
+              child: Image.asset(iconPath, width: 24, height: 24),
             ),
             const SizedBox(height: 8),
             Text(
@@ -612,7 +625,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  
+
   Widget _buildActionCard(String title, String iconPath, VoidCallback? onTap) {
     return GestureDetector(
       onTap: onTap,
@@ -621,18 +634,11 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFFF8F9FA),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: const Color(0xFFE9ECEF),
-            width: 1,
-          ),
+          border: Border.all(color: const Color(0xFFE9ECEF), width: 1),
         ),
         child: Column(
           children: [
-            Image.asset(
-              iconPath,
-              width: 32,
-              height: 32,
-            ),
+            Image.asset(iconPath, width: 32, height: 32),
             const SizedBox(height: 8),
             Text(
               title,
@@ -648,7 +654,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  
+
   Widget _buildPageIndicator(int index) {
     final isActive = index == _currentSlide;
     return AnimatedContainer(

@@ -6,16 +6,19 @@ import 'home_screen.dart';
 import 'chat_screen.dart';
 import 'reports_screen.dart';
 import 'more_screen.dart';
+import 'placeholder_screens.dart' show ShopScreen;
 
 class MainNavigationController extends GetxController {
   final _selectedIndex = 0.obs;
   final _showWelcomeDialog = true.obs;
-  
+
   int get selectedIndex => _selectedIndex.value;
   bool get showWelcomeDialog => _showWelcomeDialog.value;
 
   void changeIndex(int index) {
-    _selectedIndex.value = index;
+    if (index >= 0 && index < screens.length) {
+      _selectedIndex.value = index;
+    }
   }
 
   void dismissWelcomeDialog() {
@@ -35,6 +38,7 @@ class MainNavigationController extends GetxController {
     const HomeScreen(),
     const ChatScreen(),
     const ReportsScreen(),
+    const ShopScreen(),
     const MoreScreen(),
   ];
 }
@@ -47,66 +51,145 @@ class MainNavigationScreen extends StatelessWidget {
     final controller = Get.put(MainNavigationController());
 
     return Scaffold(
+      extendBody: true,
       body: Stack(
         children: [
-          Obx(() => controller.screens[controller.selectedIndex]),
-          
+          Obx(
+            () =>
+                controller.selectedIndex < controller.screens.length
+                    ? controller.screens[controller.selectedIndex]
+                    : controller.screens[0],
+          ),
+
           // Welcome Dialog Overlay
-          Obx(() => controller.showWelcomeDialog 
-            ? _buildWelcomeDialog(context, controller)
-            : const SizedBox.shrink()),
+          Obx(
+            () =>
+                controller.showWelcomeDialog
+                    ? _buildWelcomeDialog(context, controller)
+                    : const SizedBox.shrink(),
+          ),
         ],
       ),
       bottomNavigationBar: Obx(
-        () => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 10,
-                offset: Offset(0, -2),
+        () => Padding(
+          padding: const EdgeInsets.only(left: 12, right: 12, bottom: 16),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.10),
+                    blurRadius: 18,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: BottomNavigationBar(
-            currentIndex: controller.selectedIndex,
-            onTap: controller.changeIndex,
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: Colors.white,
-            selectedItemColor: AppColors.primary500,
-            unselectedItemColor: AppColors.textSecondary,
-            selectedFontSize: 12,
-            unselectedFontSize: 12,
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined),
-                activeIcon: Icon(Icons.home),
-                label: 'Home',
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Expanded(
+                    child: _buildNavItem(
+                      icon: Icons.home_outlined,
+                      activeIcon: Icons.home,
+                      label: 'Home',
+                      isActive: controller.selectedIndex == 0,
+                      onTap: () => controller.changeIndex(0),
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildNavItem(
+                      icon: Icons.chat_bubble_outline,
+                      activeIcon: Icons.chat_bubble,
+                      label: 'Chat',
+                      isActive: controller.selectedIndex == 1,
+                      onTap: () => controller.changeIndex(1),
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildNavItem(
+                      icon: Icons.assessment_outlined,
+                      activeIcon: Icons.assessment,
+                      label: 'Reports',
+                      isActive: controller.selectedIndex == 2,
+                      onTap: () => controller.changeIndex(2),
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildNavItem(
+                      icon: Icons.shopping_cart_outlined,
+                      activeIcon: Icons.shopping_cart,
+                      label: 'Shop',
+                      isActive: controller.selectedIndex == 3,
+                      onTap: () => controller.changeIndex(3),
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildNavItem(
+                      icon: Icons.grid_view_outlined,
+                      activeIcon: Icons.grid_view,
+                      label: 'More',
+                      isActive: controller.selectedIndex == 4,
+                      onTap: () => controller.changeIndex(4),
+                    ),
+                  ),
+                ],
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.chat_bubble_outline),
-                activeIcon: Icon(Icons.chat_bubble),
-                label: 'Chat',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.assessment_outlined),
-                activeIcon: Icon(Icons.assessment),
-                label: 'Reports',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.more_horiz_outlined),
-                activeIcon: Icon(Icons.more_horiz),
-                label: 'More',
-              ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildWelcomeDialog(BuildContext context, MainNavigationController controller) {
+  Widget _buildNavItem({
+    required IconData icon,
+    required IconData activeIcon,
+    required String label,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.ease,
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: isActive ? AppColors.primary500 : Colors.transparent,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isActive ? activeIcon : icon,
+              color: isActive ? Colors.white : AppColors.textSecondary,
+              size: 24,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+              color: isActive ? AppColors.primary500 : AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWelcomeDialog(
+    BuildContext context,
+    MainNavigationController controller,
+  ) {
     return Container(
       color: Colors.black54,
       child: Center(
@@ -147,7 +230,7 @@ class MainNavigationScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              
+
               // Welcome illustration
               Container(
                 width: 120,
@@ -165,7 +248,7 @@ class MainNavigationScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Welcome text
               const Text(
                 'Welcome to Smart Soil AI',
@@ -177,7 +260,7 @@ class MainNavigationScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
-              
+
               const Text(
                 'Real-time soil insights to grow smarter and healthier crops with confidence, naturally and productively.',
                 style: TextStyle(
@@ -188,7 +271,7 @@ class MainNavigationScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-              
+
               // Start monitoring button
               SizedBox(
                 width: double.infinity,
@@ -205,10 +288,7 @@ class MainNavigationScreen extends StatelessWidget {
                   ),
                   child: const Text(
                     'Start Monitoring',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
