@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../screens/settings_screen.dart';
 import '../screens/profile_screen.dart';
+import 'auth_controller.dart';
 
 class MoreController extends GetxController {
   final userName = 'Naimur Rahman'.obs;
@@ -19,6 +20,7 @@ class MoreController extends GetxController {
   void openPrivacy() {}
 
   void logout() {
-    // implement logout logic
+    final authController = Get.find<AuthController>();
+    authController.logout();
   }
 }

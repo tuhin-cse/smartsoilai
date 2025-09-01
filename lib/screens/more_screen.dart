@@ -14,7 +14,6 @@ class MoreScreen extends StatelessWidget {
       global: false,
       builder:
           (controller) => Scaffold(
-            backgroundColor: Colors.white,
             body: SafeArea(
               child: Column(
                 children: [
