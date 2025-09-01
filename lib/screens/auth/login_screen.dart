@@ -173,6 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               hintText: 'example@email.com',
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
+                              enableInteractiveSelection: true,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your email';
@@ -191,6 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               hintText: 'Enter your password',
                               isPassword: true,
                               controller: _passwordController,
+                              enableInteractiveSelection: false, // Disable for password security
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your password';
@@ -275,12 +277,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             imagePath: 'assets/images/google.png',
                             onPressed: () => _handleSocialLogin('Google'),
                           ),
-                          const SizedBox(height: 16),
-                          _buildSocialButton(
-                            title: 'Log In with Facebook',
-                            imagePath: 'assets/images/facebook.png',
-                            onPressed: () => _handleSocialLogin('Facebook'),
-                          ),
+                          // const SizedBox(height: 16),
+                          // _buildSocialButton(
+                          //   title: 'Log In with Facebook',
+                          //   imagePath: 'assets/images/facebook.png',
+                          //   onPressed: () => _handleSocialLogin('Facebook'),
+                          // ),
                         ],
                       ),
                     ),

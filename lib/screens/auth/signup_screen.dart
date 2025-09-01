@@ -132,6 +132,7 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     final MediaQueryData mediaQuery = MediaQuery.of(context);
     final EdgeInsets safeAreaInsets = mediaQuery.padding;
+    final EdgeInsets viewInsets = mediaQuery.viewInsets;
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAF8),
@@ -191,6 +192,9 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
               ),
               child: SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  bottom: viewInsets.bottom + 20, // Add keyboard height + padding
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -237,6 +241,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               hintText: 'Enter your full name',
                               controller: _fullNameController,
                               keyboardType: TextInputType.name,
+                              enableInteractiveSelection: true,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your full name';
@@ -255,6 +260,14 @@ class _SignupScreenState extends State<SignupScreen> {
                               hintText: 'example@email.com',
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
+                              enableInteractiveSelection: true,
+                              onSelectionChanged: (selection, cause) {
+                                // Optional: Track text selection for analytics
+                                if (selection.start != selection.end) {
+                                  // User has selected text
+                                  // You can add custom logic here
+                                }
+                              },
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your email';
@@ -323,6 +336,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               hintText: 'Enter your password',
                               isPassword: true,
                               controller: _passwordController,
+                              enableInteractiveSelection: false, // Disabled for security
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your password';
@@ -346,6 +360,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               hintText: 'Re-enter your password',
                               isPassword: true,
                               controller: _confirmPasswordController,
+                              enableInteractiveSelection: false, // Disabled for security
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please confirm your password';
@@ -414,12 +429,12 @@ class _SignupScreenState extends State<SignupScreen> {
                             imagePath: 'assets/images/google.png',
                             onPressed: () => _handleSocialSignup('Google'),
                           ),
-                          const SizedBox(height: 16),
-                          _buildSocialButton(
-                            title: 'Sign up with Facebook',
-                            imagePath: 'assets/images/facebook.png',
-                            onPressed: () => _handleSocialSignup('Facebook'),
-                          ),
+                          // const SizedBox(height: 16),
+                          // _buildSocialButton(
+                          //   title: 'Sign up with Facebook',
+                          //   imagePath: 'assets/images/facebook.png',
+                          //   onPressed: () => _handleSocialSignup('Facebook'),
+                          // ),
                         ],
                       ),
                     ),
