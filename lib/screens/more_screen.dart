@@ -68,43 +68,43 @@ class MoreScreen extends StatelessWidget {
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
-                            SettingsTileNew(
+                            SettingsTile(
                               icon: 'assets/icons/user.svg',
                               title: 'Your Profile',
                               onTap: controller.openProfile,
                               showDivider: true,
                             ),
-                            SettingsTileNew(
+                            SettingsTile(
                               icon: 'assets/icons/order.svg',
                               title: 'My Order',
                               onTap: controller.openOrders,
                               showDivider: true,
                             ),
-                            SettingsTileNew(
+                            SettingsTile(
                               icon: 'assets/icons/settings.svg',
                               title: 'Settings',
                               onTap: controller.openSettings,
                               showDivider: true,
                             ),
-                            SettingsTileNew(
+                            SettingsTile(
                               icon: 'assets/icons/subscription.svg',
                               title: 'Subscription Plan',
                               onTap: controller.openSubscription,
                               showDivider: true,
                             ),
-                            SettingsTileNew(
+                            SettingsTile(
                               icon: 'assets/icons/about.svg',
                               title: 'About',
                               onTap: controller.openAbout,
                               showDivider: true,
                             ),
-                            SettingsTileNew(
+                            SettingsTile(
                               icon: 'assets/icons/privacy.svg',
                               title: 'Privacy Policy',
                               onTap: controller.openPrivacy,
                               showDivider: true,
                             ),
-                            SettingsTileNew(
+                            SettingsTile(
                               icon: 'assets/icons/logout.svg',
                               title: 'Log Out',
                               onTap: controller.logout,

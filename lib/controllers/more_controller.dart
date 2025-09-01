@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../screens/settings_screen.dart';
 
 class MoreController extends GetxController {
   final userName = 'Naimur Rahman'.obs;
@@ -8,7 +9,10 @@ class MoreController extends GetxController {
   }
 
   void openOrders() {}
-  void openSettings() {}
+  void openSettings() {
+    Get.to(() => const SettingsScreen());
+  }
+
   void openSubscription() {}
   void openAbout() {}
   void openPrivacy() {}

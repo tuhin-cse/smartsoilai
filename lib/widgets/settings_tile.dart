@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:smartsoilai/constants/app_colors.dart';
 
-class SettingsTileNew extends StatelessWidget {
+class SettingsTile extends StatelessWidget {
   final String icon;
   final String title;
   final VoidCallback onTap;
   final Color? titleColor;
   final bool showDivider;
 
-  const SettingsTileNew({
+  const SettingsTile({
     super.key,
     required this.icon,
     required this.title,
