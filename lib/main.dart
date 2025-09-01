@@ -4,6 +4,7 @@ import 'constants/app_colors.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/language_controller.dart';
 import 'controllers/theme_controller.dart';
+import 'services/network_service.dart';
 import 'routes/app_routes.dart';
 
 void main() {
@@ -19,6 +20,7 @@ class MyApp extends StatelessWidget {
     Get.put(AuthController());
     Get.put(LanguageController());
     Get.put(ThemeController());
+    Get.put(NetworkService());
 
     return GetMaterialApp(
       title: 'Smart Soil AI',
