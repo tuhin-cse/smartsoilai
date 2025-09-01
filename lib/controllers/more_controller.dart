@@ -1,11 +1,12 @@
 import 'package:get/get.dart';
 import '../screens/settings_screen.dart';
+import '../screens/profile_screen.dart';
 
 class MoreController extends GetxController {
   final userName = 'Naimur Rahman'.obs;
 
   void openProfile() {
-    // TODO: navigate to profile
+    Get.to(() => const ProfileScreen());
   }
 
   void openOrders() {}
