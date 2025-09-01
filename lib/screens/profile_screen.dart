@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smartsoilai/widgets/profile_shimmer.dart';
+import 'package:smartsoilai/widgets/image_picker_bottom_sheet.dart';
 import '../controllers/profile_controller.dart';
 import '../widgets/input.dart';
 
@@ -114,38 +116,71 @@ class ProfileScreen extends StatelessWidget {
                                             borderRadius: BorderRadius.circular(
                                               60,
                                             ),
-                                            child: Image.asset(
-                                              'assets/images/icon.png',
-                                              fit: BoxFit.cover,
+                                            child: Obx(
+                                              () =>
+                                                  controller
+                                                              .profileImagePath
+                                                              .value !=
+                                                          null
+                                                      ? Image.file(
+                                                        File(
+                                                          controller
+                                                              .profileImagePath
+                                                              .value!,
+                                                        ),
+                                                        fit: BoxFit.cover,
+                                                      )
+                                                      : Image.asset(
+                                                        'assets/images/icon.png',
+                                                        fit: BoxFit.cover,
+                                                      ),
                                             ),
                                           ),
                                         ),
                                         Positioned(
                                           right: 0,
                                           bottom: 8,
-                                          child: Container(
-                                            width: 36,
-                                            height: 36,
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFF62BE24),
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                color: Colors.white,
-                                                width: 3,
-                                              ),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black
-                                                      .withOpacity(0.15),
-                                                  blurRadius: 8,
-                                                  offset: const Offset(0, 2),
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              showModalBottomSheet(
+                                                context: context,
+                                                backgroundColor:
+                                                    Colors.transparent,
+                                                isScrollControlled: true,
+                                                builder:
+                                                    (
+                                                      context,
+                                                    ) => ImagePickerBottomSheet(
+                                                      onImageSelected:
+                                                          controller
+                                                              .onImageSelected,
+                                                    ),
+                                              );
+                                            },
+                                            child: Container(
+                                              width: 36,
+                                              height: 36,
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF62BE24),
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: Colors.white,
+                                                  width: 3,
                                                 ),
-                                              ],
-                                            ),
-                                            child: const Icon(
-                                              Icons.camera_alt,
-                                              color: Colors.white,
-                                              size: 18,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black
+                                                        .withOpacity(0.15),
+                                                    blurRadius: 8,
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: const Icon(
+                                                Icons.camera_alt,
+                                                color: Colors.white,
+                                                size: 18,
+                                              ),
                                             ),
                                           ),
                                         ),

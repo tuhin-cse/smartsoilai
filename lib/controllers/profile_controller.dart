@@ -10,8 +10,8 @@ class ProfileController extends GetxController {
   final genderController = ''.obs;
   final isLoading = false.obs;
   final isUpdateLoading = false.obs;
-
   final isButtonEnabled = false.obs;
+  final profileImagePath = RxnString();
 
   String _initialName = '';
   String _initialGender = '';
@@ -107,5 +107,19 @@ class ProfileController extends GetxController {
 
   void updateGender(String value) {
     genderController.value = value;
+  }
+
+  void onImageSelected(String? imagePath) {
+    if (imagePath != null) {
+      profileImagePath.value = imagePath;
+      // Here you can add logic to upload the image to your server
+      Get.snackbar(
+        'Success',
+        'Profile picture selected successfully!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF62BE24),
+        colorText: Colors.white,
+      );
+    }
   }
 }
