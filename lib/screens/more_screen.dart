@@ -5,6 +5,19 @@ class MoreScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return  Scaffold(
+      backgroundColor: Color(0xFFEFEFEF),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          GestureDetector(
+            onTap: () {
+              // Handle logout action
+            },
+            child: Text('Logout'),
+          ),
+        ],
+      ),
+    );
   }
 }

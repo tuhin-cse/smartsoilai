@@ -19,13 +19,21 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Navigate after animation
+    // Navigate after animation and auth check
+    _initializeApp();
+  }
 
+  Future<void> _initializeApp() async {
+    // Check for USB devices in background
     checkDevices();
 
-    Future.delayed(const Duration(milliseconds: 3000), () {
-      Get.offNamed('/onboarding');
-    });
+    // Wait for auth controller to initialize
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // Small delay for splash screen visibility
+    await Future.delayed(const Duration(milliseconds: 2500));
+
+    _navigateToNext();
   }
 
   void checkDevices() async {
@@ -33,7 +41,7 @@ class _SplashScreenState extends State<SplashScreen> {
       print('Checking for USB devices...');
       List<UsbDevice> devices = await UsbSerial.listDevices();
       print('Found ${devices.length} USB devices:');
-      
+
       if (devices.isEmpty) {
         print('No USB devices found');
         print('Make sure:');
@@ -44,7 +52,9 @@ class _SplashScreenState extends State<SplashScreen> {
         for (var device in devices) {
           print('Device: ${device.deviceName}');
           print('  Vendor ID: 0x${device.vid?.toRadixString(16) ?? 'unknown'}');
-          print('  Product ID: 0x${device.pid?.toRadixString(16) ?? 'unknown'}');
+          print(
+            '  Product ID: 0x${device.pid?.toRadixString(16) ?? 'unknown'}',
+          );
           print('  Serial: ${device.serial ?? 'unknown'}');
           print('  Manufacturer: ${device.manufacturerName ?? 'unknown'}');
           print('  Product: ${device.productName ?? 'unknown'}');
@@ -57,15 +67,38 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _navigateToNext() async {
     final authController = Get.find<AuthController>();
-    final storage = await storageService;
-    final isOnboardingCompleted = await storage.isOnboardingCompleted();
 
-    if (authController.isAuthenticated) {
+    // Check if user has stored credentials (access token)
+    final hasCredentials = await authController.hasStoredCredentials();
+
+    print('🔐 Auth Check:');
+    print('  - Has stored credentials: $hasCredentials');
+    print('  - Is authenticated: ${authController.isAuthenticated}');
+
+    if (hasCredentials && authController.isAuthenticated) {
+      // User has valid credentials and is authenticated
+      print('  → Navigating to: /main-navigation (authenticated user)');
       Get.offNamed('/main-navigation');
-    } else if (isOnboardingCompleted) {
+    } else if (hasCredentials) {
+      // User has stored credentials but not authenticated (maybe token expired)
+      print(
+        '  → Navigating to: /login (has credentials but not authenticated)',
+      );
       Get.offNamed('/login');
     } else {
-      Get.offNamed('/onboarding');
+      // No stored credentials, check onboarding status
+      final storage = await storageService;
+      final isOnboardingCompleted = await storage.isOnboardingCompleted();
+
+      print('  - Onboarding completed: $isOnboardingCompleted');
+
+      if (isOnboardingCompleted) {
+        print('  → Navigating to: /login (onboarding completed)');
+        Get.offNamed('/login');
+      } else {
+        print('  → Navigating to: /onboarding (first time user)');
+        Get.offNamed('/onboarding');
+      }
     }
   }
 

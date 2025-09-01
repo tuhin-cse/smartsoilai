@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/user.dart';
 import '../models/auth_request.dart';
 import '../repositories/auth_repository.dart';
@@ -7,6 +9,12 @@ import '../repositories/exceptions/api_exception.dart';
 
 class AuthController extends GetxController {
   final AuthRepository _authRepository = AuthRepository();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
+  // Storage keys
+  static const String _accessTokenKey = 'accessToken';
+  static const String _refreshTokenKey = 'refreshToken';
+  static const String _userDataKey = 'user';
 
   // Observable variables
   final _isAuthenticated = false.obs;
@@ -17,7 +25,6 @@ class AuthController extends GetxController {
   bool get isAuthenticated => _isAuthenticated.value;
   User? get user => _user.value;
   bool get isLoading => _isLoading.value;
-
 
   // Display name helper
   String get displayName {
@@ -36,6 +43,23 @@ class AuthController extends GetxController {
     return null;
   }
 
+  // Get access token for API calls
+  Future<String?> getAccessToken() async {
+    return await _secureStorage.read(key: _accessTokenKey);
+  }
+
+  // Get refresh token
+  Future<String?> getRefreshToken() async {
+    return await _secureStorage.read(key: _refreshTokenKey);
+  }
+
+  // Check if user has stored credentials
+  Future<bool> hasStoredCredentials() async {
+    final accessToken = await _secureStorage.read(key: _accessTokenKey);
+    final userData = await _secureStorage.read(key: _userDataKey);
+    return accessToken != null && userData != null;
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -44,11 +68,25 @@ class AuthController extends GetxController {
 
   Future<void> _checkAuthState() async {
     try {
-      final isLoggedIn = await _authRepository.isLoggedIn();
-      if (isLoggedIn) {
-        final user = await _authRepository.getProfile();
+      // Check if access token exists in secure storage
+      final accessToken = await _secureStorage.read(key: _accessTokenKey);
+      final userDataJson = await _secureStorage.read(key: _userDataKey);
+
+      if (accessToken != null && userDataJson != null) {
+        // Parse user data from stored JSON
+        final userData = json.decode(userDataJson) as Map<String, dynamic>;
+        final user = User.fromJson(userData);
+
         _user.value = user;
         _isAuthenticated.value = true;
+      } else {
+        // Try to get profile from API if no stored data
+        final isLoggedIn = await _authRepository.isLoggedIn();
+        if (isLoggedIn) {
+          final user = await _authRepository.getProfile();
+          _user.value = user;
+          _isAuthenticated.value = true;
+        }
       }
     } catch (e) {
       // Silent fail on init - user not logged in
@@ -63,10 +101,24 @@ class AuthController extends GetxController {
       final response = await _authRepository.signin(request);
 
       print(response);
-      
+
+      // Save tokens to secure storage
+      await _secureStorage.write(
+        key: _accessTokenKey,
+        value: response.accessToken,
+      );
+      await _secureStorage.write(
+        key: _refreshTokenKey,
+        value: response.refreshToken,
+      );
+
+      // Save user data as JSON string
+      final userJson = json.encode(response.user.toJson());
+      await _secureStorage.write(key: _userDataKey, value: userJson);
+
       _user.value = response.user;
       _isAuthenticated.value = true;
-      
+
       _showSuccessMessage('Login successful');
     } on ApiException catch (e) {
       _showErrorMessage('Login Failed', e.message);
@@ -79,7 +131,12 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<String?> signup(String email, String password, String fullName, {String? gender}) async {
+  Future<String?> signup(
+    String email,
+    String password,
+    String fullName, {
+    String? gender,
+  }) async {
     _setLoading(true);
     try {
       final request = SignupRequest(
@@ -88,10 +145,10 @@ class AuthController extends GetxController {
         password: password,
         gender: gender,
       );
-      
+
       final response = await _authRepository.signup(request);
       _showSuccessMessage(response.message);
-      
+
       // Return the OTP for development
       return response.otp;
     } on ApiException catch (e) {
@@ -110,10 +167,24 @@ class AuthController extends GetxController {
     try {
       final request = VerifyOtpRequest(email: email, otp: otp);
       final response = await _authRepository.verifySignupOtp(request);
-      
+
+      // Save tokens to secure storage after successful verification
+      await _secureStorage.write(
+        key: _accessTokenKey,
+        value: response.accessToken,
+      );
+      await _secureStorage.write(
+        key: _refreshTokenKey,
+        value: response.refreshToken,
+      );
+
+      // Save user data
+      final userJson = json.encode(response.user.toJson());
+      await _secureStorage.write(key: _userDataKey, value: userJson);
+
       _user.value = response.user;
       _isAuthenticated.value = true;
-      
+
       _showSuccessMessage('Email verified successfully');
     } on ApiException catch (e) {
       _showErrorMessage('Verification Failed', e.message);
@@ -131,9 +202,9 @@ class AuthController extends GetxController {
     try {
       final request = ResendOtpRequest(email: email);
       final response = await _authRepository.resendSignupOtp(request);
-      
+
       _showSuccessMessage(response.message);
-      
+
       // Return the OTP for development
       return response.otp;
     } on ApiException catch (e) {
@@ -152,9 +223,9 @@ class AuthController extends GetxController {
     try {
       final request = ForgotPasswordRequest(email: email);
       final response = await _authRepository.forgotPassword(request);
-      
+
       _showSuccessMessage(response.message);
-      
+
       // Return the OTP for development
       return response.otp;
     } on ApiException catch (e) {
@@ -168,7 +239,11 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<void> resetPassword(String email, String token, String newPassword) async {
+  Future<void> resetPassword(
+    String email,
+    String token,
+    String newPassword,
+  ) async {
     _setLoading(true);
     try {
       final request = ResetPasswordRequest(
@@ -176,7 +251,7 @@ class AuthController extends GetxController {
         token: token,
         newPassword: newPassword,
       );
-      
+
       final response = await _authRepository.resetPassword(request);
       _showSuccessMessage(response.message);
     } on ApiException catch (e) {
@@ -193,9 +268,15 @@ class AuthController extends GetxController {
   Future<void> logout() async {
     try {
       await _authRepository.logout();
+
+      // Clear all stored data from secure storage
+      await _secureStorage.delete(key: _accessTokenKey);
+      await _secureStorage.delete(key: _refreshTokenKey);
+      await _secureStorage.delete(key: _userDataKey);
+
       _user.value = null;
       _isAuthenticated.value = false;
-      
+
       Get.offAllNamed('/login');
     } catch (e) {
       _showErrorMessage('Logout Failed', 'An error occurred during logout');
@@ -207,7 +288,7 @@ class AuthController extends GetxController {
     try {
       final request = UpdateProfileRequest(name: name, gender: gender);
       final updatedUser = await _authRepository.updateProfile(request);
-      
+
       _user.value = updatedUser;
       _showSuccessMessage('Profile updated successfully');
     } on ApiException catch (e) {
