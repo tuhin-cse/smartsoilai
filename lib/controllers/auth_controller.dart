@@ -6,6 +6,7 @@ import '../models/user.dart';
 import '../models/auth_request.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/exceptions/api_exception.dart';
+import '../services/user_service.dart';
 
 class AuthController extends GetxController {
   final AuthRepository _authRepository = AuthRepository();
@@ -28,8 +29,9 @@ class AuthController extends GetxController {
 
   // Display name helper
   String get displayName {
-    if (user?.name != null) {
-      return user!.name;
+    final name = UserService.to.name;
+    if (name.isNotEmpty) {
+      return name;
     }
     return 'User';
   }
@@ -40,7 +42,9 @@ class AuthController extends GetxController {
   }
 
   String? get profileImage {
-    return null;
+    return UserService.to.profileImage.isNotEmpty
+        ? UserService.to.profileImage
+        : null;
   }
 
   // Get access token for API calls
@@ -79,6 +83,9 @@ class AuthController extends GetxController {
 
         _user.value = user;
         _isAuthenticated.value = true;
+
+        // Update UserService with stored user data
+        UserService.to.updateUserDataFromUser(user);
       } else {
         // Try to get profile from API if no stored data
         final isLoggedIn = await _authRepository.isLoggedIn();
@@ -86,6 +93,9 @@ class AuthController extends GetxController {
           final user = await _authRepository.getProfile();
           _user.value = user;
           _isAuthenticated.value = true;
+
+          // Update UserService with fetched user data
+          UserService.to.updateUserDataFromUser(user);
         }
       }
     } catch (e) {
@@ -118,6 +128,9 @@ class AuthController extends GetxController {
 
       _user.value = response.user;
       _isAuthenticated.value = true;
+
+      // Update UserService with user data
+      UserService.to.updateUserDataFromUser(response.user);
 
       _showSuccessMessage('Login successful');
     } on ApiException catch (e) {
@@ -184,6 +197,9 @@ class AuthController extends GetxController {
 
       _user.value = response.user;
       _isAuthenticated.value = true;
+
+      // Update UserService with user data
+      UserService.to.updateUserDataFromUser(response.user);
 
       _showSuccessMessage('Email verified successfully');
     } on ApiException catch (e) {
@@ -277,6 +293,9 @@ class AuthController extends GetxController {
       _user.value = null;
       _isAuthenticated.value = false;
 
+      // Clear UserService data
+      UserService.to.clearUserData();
+
       Get.offAllNamed('/login');
     } catch (e) {
       _showErrorMessage('Logout Failed', 'An error occurred during logout');
@@ -290,6 +309,10 @@ class AuthController extends GetxController {
       final updatedUser = await _authRepository.updateProfile(request);
 
       _user.value = updatedUser;
+
+      // Update UserService with updated user data
+      UserService.to.updateUserDataFromUser(updatedUser);
+
       _showSuccessMessage('Profile updated successfully');
     } on ApiException catch (e) {
       _showErrorMessage('Update Failed', e.message);

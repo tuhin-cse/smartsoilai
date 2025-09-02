@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../repositories/profile_repository.dart';
 import '../repositories/exceptions/api_exception.dart';
+import '../services/user_service.dart';
 
 class ProfileController extends GetxController {
   final nameController = TextEditingController();
@@ -16,12 +16,13 @@ class ProfileController extends GetxController {
   String _initialName = '';
   String _initialGender = '';
   String _initialEmail = '';
-  String _initialPhone = '';
-  final ProfileRepository _profileRepository = ProfileRepository();
 
   @override
   void onInit() {
     super.onInit();
+    // Listen to user service data changes
+    ever(UserService.to.userData, (_) => _syncWithUserService());
+
     fetchProfile();
     nameController.addListener(_onFieldChanged);
     genderController.listen((_) => _onFieldChanged());
@@ -33,6 +34,21 @@ class ProfileController extends GetxController {
     emailController.dispose();
     // phoneController.dispose();
     super.onClose();
+  }
+
+  void _syncWithUserService() {
+    final userData = UserService.to.userData;
+    if (userData.isNotEmpty) {
+      _initialName = userData['name'] ?? '';
+      _initialGender = userData['gender'] ?? '';
+      _initialEmail = userData['email'] ?? '';
+
+      nameController.text = _initialName;
+      genderController.value = _initialGender;
+      emailController.text = _initialEmail;
+      // phoneController.text = _initialPhone;
+      isButtonEnabled.value = false;
+    }
   }
 
   void _onFieldChanged() {
@@ -49,18 +65,8 @@ class ProfileController extends GetxController {
   Future<void> fetchProfile() async {
     isLoading.value = true;
     try {
-      final data = await _profileRepository.fetchProfile();
+      await UserService.to.fetchUserData();
       isLoading.value = false;
-      _initialName = data['name'] ?? '';
-      _initialGender = data['gender'] ?? '';
-      _initialEmail = data['email'] ?? '';
-      _initialPhone = data['phone'] ?? '';
-
-      nameController.text = _initialName;
-      genderController.value = _initialGender;
-      emailController.text = _initialEmail;
-      // phoneController.text = _initialPhone;
-      isButtonEnabled.value = false;
     } catch (e) {
       if (e is ApiException) {
         // Optionally show error message: e.message
@@ -92,7 +98,8 @@ class ProfileController extends GetxController {
         isUpdateLoading.value = false;
         return;
       }
-      await _profileRepository.updateProfile(updateData);
+
+      await UserService.to.updateUserData(updateData);
       isUpdateLoading.value = false;
       isButtonEnabled.value = false;
 
@@ -112,14 +119,8 @@ class ProfileController extends GetxController {
   void onImageSelected(String? imagePath) {
     if (imagePath != null) {
       profileImagePath.value = imagePath;
-      // Here you can add logic to upload the image to your server
-      Get.snackbar(
-        'Success',
-        'Profile picture selected successfully!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFF62BE24),
-        colorText: Colors.white,
-      );
+      // Update through user service
+      UserService.to.updateProfileImage(imagePath);
     }
   }
 }
