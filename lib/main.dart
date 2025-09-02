@@ -7,6 +7,7 @@ import 'controllers/language_controller.dart';
 import 'controllers/theme_controller.dart';
 import 'services/network_service.dart';
 import 'services/user_service.dart';
+import 'services/weather_service.dart';
 import 'routes/app_routes.dart';
 
 void main() async {
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
     Get.put(ThemeController());
     Get.put(NetworkService());
     Get.put(UserService());
+    Get.put(WeatherService());
 
     return GetMaterialApp(
       title: 'Smart Soil AI',

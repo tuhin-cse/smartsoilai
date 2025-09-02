@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:geolocator/geolocator.dart';
 import '../constants/app_colors.dart';
 import '../services/user_service.dart';
+import '../services/weather_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -131,6 +133,9 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: AppColors.primary700,
       body: Obx(() {
         final userService = UserService.to;
+        final weatherService = Get.find<WeatherService>();
+        final minMaxTemp = weatherService.getMinMaxTemp();
+        final sunTimes = weatherService.getSunTimes();
         return Column(
           children: [
             // Header Section
@@ -197,61 +202,188 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       children: [
                         // Weather Card
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
-                              width: 1,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              // Location
-                              Row(
+                        weatherService.isLoading.value
+                            ? Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            )
+                            : weatherService.error.value.isNotEmpty
+                            ? Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    Icons.location_on,
-                                    color: Colors.white.withOpacity(0.8),
-                                    size: 16,
+                                  const Icon(
+                                    Icons.error_outline,
+                                    color: Colors.white,
+                                    size: 32,
                                   ),
-                                  const SizedBox(width: 4),
-                                  const Text(
-                                    'Jessore, Khulna',
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Weather data unavailable',
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: Colors.white.withOpacity(0.8),
                                       fontSize: 14,
-                                      fontWeight: FontWeight.w500,
                                     ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    weatherService.error.value,
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.6),
+                                      fontSize: 12,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      ElevatedButton(
+                                        onPressed:
+                                            () =>
+                                                weatherService
+                                                    .refreshWeatherData(),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.white
+                                              .withOpacity(0.2),
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 8,
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'Retry',
+                                          style: TextStyle(fontSize: 12),
+                                        ),
+                                      ),
+                                      if (weatherService.error.value.contains(
+                                        'location',
+                                      ))
+                                        const SizedBox(width: 8),
+                                      if (weatherService.error.value.contains(
+                                        'location',
+                                      ))
+                                        ElevatedButton(
+                                          onPressed: () async {
+                                            // Open location settings
+                                            await Geolocator.openLocationSettings();
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.white
+                                                .withOpacity(0.2),
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 8,
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            'Settings',
+                                            style: TextStyle(fontSize: 12),
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 8),
-
-                              // Temperature and weather
-                              Row(
+                            )
+                            : Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Column(
                                 children: [
-                                  const Text(
-                                    '27°C',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 42,
-                                      fontWeight: FontWeight.w300,
-                                    ),
+                                  // Location
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.location_on,
+                                        color: Colors.white.withOpacity(0.8),
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        weatherService.getLocationString(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
+                                  const SizedBox(height: 8),
+
+                                  // Temperature and weather
+                                  Row(
+                                    children: [
+                                      Text(
+                                        weatherService.getTemperatureString(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 42,
+                                          fontWeight: FontWeight.w300,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  'H: ${minMaxTemp['max']}°',
+                                                  style: TextStyle(
+                                                    color: Colors.white
+                                                        .withOpacity(0.8),
+                                                    fontSize: 13,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 16),
+                                                const Icon(
+                                                  Icons.wb_sunny,
+                                                  color: Colors.yellow,
+                                                  size: 20,
+                                                ),
+                                              ],
+                                            ),
                                             Text(
-                                              'H: 23°',
+                                              'L: ${minMaxTemp['min']}°',
                                               style: TextStyle(
                                                 color: Colors.white.withOpacity(
                                                   0.8,
@@ -259,78 +391,73 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 fontSize: 13,
                                               ),
                                             ),
-                                            const SizedBox(width: 16),
-                                            const Icon(
-                                              Icons.wb_sunny,
-                                              color: Colors.yellow,
-                                              size: 20,
-                                            ),
                                           ],
                                         ),
-                                        Text(
-                                          'L: 14°',
-                                          style: TextStyle(
-                                            color: Colors.white.withOpacity(
-                                              0.8,
-                                            ),
-                                            fontSize: 13,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+
+                                  // Weather details
+                                  Row(
+                                    children: [
+                                      _buildWeatherDetail(
+                                        'Humidity',
+                                        weatherService.getHumidityString(),
+                                      ),
+                                      _buildWeatherDetail(
+                                        'Visibility',
+                                        weatherService.getVisibilityString(),
+                                      ),
+                                      _buildWeatherDetail(
+                                        'Pressure',
+                                        weatherService.getPressureString(),
+                                      ),
+                                      _buildWeatherDetail(
+                                        'Wind',
+                                        weatherService.getWindSpeedString(),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+
+                                  // Time indicators
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        sunTimes['sunrise']!,
+                                        style: TextStyle(
+                                          color: Colors.white.withOpacity(0.8),
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                      Container(
+                                        height: 1,
+                                        width: 100,
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              Colors.yellow,
+                                              Colors.orange,
+                                              Colors.white.withOpacity(0.3),
+                                            ],
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-
-                              // Weather details
-                              Row(
-                                children: [
-                                  _buildWeatherDetail('Humidity', '40%'),
-                                  _buildWeatherDetail('Precipitation', '5.1 M'),
-                                  _buildWeatherDetail('Pressure', '460 hpa'),
-                                  _buildWeatherDetail('Wind', '23 mph'),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-
-                              // Time indicators
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    '5:20 am',
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.8),
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                  Container(
-                                    height: 1,
-                                    width: 100,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.yellow,
-                                          Colors.orange,
-                                          Colors.white.withOpacity(0.3),
-                                        ],
                                       ),
-                                    ),
-                                  ),
-                                  Text(
-                                    '7:20 Pm',
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.8),
-                                      fontSize: 11,
-                                    ),
+                                      Text(
+                                        sunTimes['sunset']!,
+                                        style: TextStyle(
+                                          color: Colors.white.withOpacity(0.8),
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
-                        ),
+                            ),
 
                         // Satellite Card
                         Container(
