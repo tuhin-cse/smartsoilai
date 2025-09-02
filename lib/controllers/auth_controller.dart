@@ -350,4 +350,37 @@ class AuthController extends GetxController {
       duration: const Duration(seconds: 4),
     );
   }
+
+  Future<void> socialLogin(
+    String accessToken,
+    String refreshToken,
+    Map<String, dynamic> userData,
+  ) async {
+    _setLoading(true);
+    try {
+      // Create User object from response
+      final user = User.fromJson(userData);
+
+      // Save tokens to secure storage
+      await _secureStorage.write(key: _accessTokenKey, value: accessToken);
+      await _secureStorage.write(key: _refreshTokenKey, value: refreshToken);
+
+      // Save user data as JSON string
+      final userJson = json.encode(user.toJson());
+      await _secureStorage.write(key: _userDataKey, value: userJson);
+
+      _user.value = user;
+      _isAuthenticated.value = true;
+
+      // Update UserService with user data
+      UserService.to.updateUserDataFromUser(user);
+
+      _showSuccessMessage('Login successful');
+    } catch (e) {
+      _showErrorMessage('Login Failed', 'An unexpected error occurred');
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
 }

@@ -8,8 +8,8 @@ class AppConfig {
   static const int receiveTimeoutMs = 15000;
 
   // Storage keys
-  static const String accessTokenKey = 'access_token';
-  static const String refreshTokenKey = 'refresh_token';
+  static const String accessTokenKey = 'accessToken';
+  static const String refreshTokenKey = 'refreshToken';
   static const String userKey = 'user';
 
   // Environment settings

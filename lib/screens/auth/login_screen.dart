@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smartsoilai/widgets/buttons.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smartsoilai/widgets/loader.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../../widgets/input.dart';
 import '../../repositories/api_client.dart';
-import '../../config/app_config.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -83,13 +81,16 @@ class _LoginScreenState extends State<LoginScreen> {
           await googleUser.authentication;
 
       // Create Firebase credential
-      final AuthCredential credential = GoogleAuthProvider.credential(
+      final firebase_auth.AuthCredential credential = firebase_auth
+          .GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
       // Sign in to Firebase
-      final UserCredential userCredential = await FirebaseAuth.instance
+      final firebase_auth.UserCredential userCredential = await firebase_auth
+          .FirebaseAuth
+          .instance
           .signInWithCredential(credential);
 
       // Get the ID token
@@ -125,12 +126,16 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (response.statusCode == 200) {
-        // Save tokens
+        // Parse the response data
         final data = response.data;
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(AppConfig.accessTokenKey, data['accessToken']);
-        await prefs.setString(AppConfig.refreshTokenKey, data['refreshToken']);
-        await prefs.setString(AppConfig.userKey, data['user'].toString());
+
+        // Use AuthController's social login method
+        final authController = Get.find<AuthController>();
+        await authController.socialLogin(
+          data['accessToken'],
+          data['refreshToken'],
+          data['user'] as Map<String, dynamic>,
+        );
 
         // Navigate to main screen
         Get.offNamed('/main-navigation');
@@ -138,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
         throw Exception('Social login failed');
       }
     } catch (error) {
-      throw error;
+      rethrow;
     }
   }
 
@@ -199,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
             ),
-      
+
             // Content
             Expanded(
               child: Container(
@@ -241,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                       ),
-      
+
                       // Login Form
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -267,7 +272,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 },
                               ),
                               const SizedBox(height: 20),
-      
+
                               // Password Field
                               CustomFormField(
                                 label: 'Password',
@@ -287,7 +292,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 },
                               ),
                               const SizedBox(height: 12),
-      
+
                               // Forgot Password
                               Align(
                                 alignment: Alignment.centerRight,
@@ -307,7 +312,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                               const SizedBox(height: 24),
-      
+
                               PrimaryButton(
                                 title: "Login",
                                 onPressed: _isLoading ? null : _handleLogin,
@@ -317,7 +322,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-      
+
                       // Divider
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 20),
@@ -349,7 +354,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-      
+
                       // Social Login Buttons
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -369,7 +374,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                       ),
-      
+
                       // Sign Up Link
                       Padding(
                         padding: const EdgeInsets.symmetric(
