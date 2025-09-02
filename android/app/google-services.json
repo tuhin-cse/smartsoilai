@@ -1,0 +1,70 @@
+{
+  "project_info": {
+    "project_number": "282896781194",
+    "project_id": "smartsoilai-4df67",
+    "storage_bucket": "smartsoilai-4df67.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:282896781194:android:6e3f10f0f730893398c273",
+        "android_client_info": {
+          "package_name": "com.smartsoilai.smartsoilai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "282896781194-bfi7n8htd72ou9n0a4i4c4ak440eunkf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.smartsoilai.smartsoilai",
+            "certificate_hash": "ce9b757f1f80286cc986db8602fedc1d03980051"
+          }
+        },
+        {
+          "client_id": "282896781194-qr102vb64csosedv04oe9v70ft8scvf7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.smartsoilai.smartsoilai",
+            "certificate_hash": "4743f2c4a854ec0a261a1930947a0802f5ce4bcd"
+          }
+        },
+        {
+          "client_id": "282896781194-v7it6b94ba7uu9rdqtm7htak99p9f3bt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.smartsoilai.smartsoilai",
+            "certificate_hash": "a3d914767bab6021e6da7d1ad06b2addd692270a"
+          }
+        },
+        {
+          "client_id": "282896781194-0e63uh5mh0gu4kqp5pahl3sqpeer9t48.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6kzZ10Jq3yv3Vl-SBmjrvs1UhwJfy8JM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "282896781194-0e63uh5mh0gu4kqp5pahl3sqpeer9t48.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "282896781194-qq7iiet92kst597dvsndf2kdjmdvnel2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.smartsoilai.smartsoilai"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
