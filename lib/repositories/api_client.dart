@@ -1,11 +1,12 @@
 import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
 import 'exceptions/api_exception.dart';
 
 class ApiClient {
   late Dio _dio;
   static ApiClient? _instance;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   ApiClient._internal() {
     _dio = Dio();
@@ -21,8 +22,12 @@ class ApiClient {
 
   void _setupInterceptors() {
     _dio.options.baseUrl = AppConfig.baseUrl;
-    _dio.options.connectTimeout = Duration(milliseconds: AppConfig.connectTimeoutMs);
-    _dio.options.receiveTimeout = Duration(milliseconds: AppConfig.receiveTimeoutMs);
+    _dio.options.connectTimeout = Duration(
+      milliseconds: AppConfig.connectTimeoutMs,
+    );
+    _dio.options.receiveTimeout = Duration(
+      milliseconds: AppConfig.receiveTimeoutMs,
+    );
     _dio.options.headers['Content-Type'] = 'application/json';
     _dio.options.headers['Accept'] = 'application/json';
 
@@ -30,13 +35,14 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final prefs = await SharedPreferences.getInstance();
-          final token = prefs.getString(AppConfig.accessTokenKey);
-          
+          final token = await _secureStorage.read(
+            key: AppConfig.accessTokenKey,
+          );
+
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
           }
-          
+
           handler.next(options);
         },
         onError: (error, handler) async {
@@ -46,9 +52,10 @@ class ApiClient {
             if (refreshed) {
               // Retry the original request
               final originalRequest = error.requestOptions;
-              final prefs = await SharedPreferences.getInstance();
-              final newToken = prefs.getString(AppConfig.accessTokenKey);
-              
+              final newToken = await _secureStorage.read(
+                key: AppConfig.accessTokenKey,
+              );
+
               if (newToken != null) {
                 originalRequest.headers['Authorization'] = 'Bearer $newToken';
                 final response = await _dio.fetch(originalRequest);
@@ -59,7 +66,7 @@ class ApiClient {
             // If refresh failed, clear tokens and redirect to login
             await _clearTokens();
           }
-          
+
           handler.next(error);
         },
       ),
@@ -81,9 +88,10 @@ class ApiClient {
 
   Future<bool> _tryRefreshToken() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final refreshToken = prefs.getString(AppConfig.refreshTokenKey);
-      
+      final refreshToken = await _secureStorage.read(
+        key: AppConfig.refreshTokenKey,
+      );
+
       if (refreshToken == null) return false;
 
       final response = await _dio.post(
@@ -96,22 +104,27 @@ class ApiClient {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        await prefs.setString(AppConfig.accessTokenKey, data['accessToken']);
-        await prefs.setString(AppConfig.refreshTokenKey, data['refreshToken']);
+        await _secureStorage.write(
+          key: AppConfig.accessTokenKey,
+          value: data['accessToken'],
+        );
+        await _secureStorage.write(
+          key: AppConfig.refreshTokenKey,
+          value: data['refreshToken'],
+        );
         return true;
       }
     } catch (e) {
       // Refresh failed
     }
-    
+
     return false;
   }
 
   Future<void> _clearTokens() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(AppConfig.accessTokenKey);
-    await prefs.remove(AppConfig.refreshTokenKey);
-    await prefs.remove(AppConfig.userKey);
+    await _secureStorage.delete(key: AppConfig.accessTokenKey);
+    await _secureStorage.delete(key: AppConfig.refreshTokenKey);
+    await _secureStorage.delete(key: AppConfig.userKey);
   }
 
   Future<Response<T>> get<T>(
@@ -200,7 +213,7 @@ class ApiClient {
         case DioExceptionType.badResponse:
           final statusCode = error.response?.statusCode;
           final message = _extractErrorMessage(error.response?.data);
-          
+
           switch (statusCode) {
             case 400:
               return ValidationException(
@@ -210,10 +223,7 @@ class ApiClient {
             case 401:
               return UnauthorizedException(message: message);
             case 409:
-              return ApiException(
-                message: message,
-                statusCode: statusCode,
-              );
+              return ApiException(message: message, statusCode: statusCode);
             case 500:
             default:
               return ServerException(message: message);
@@ -224,17 +234,13 @@ class ApiClient {
           );
       }
     }
-    
-    return ApiException(
-      message: error.toString(),
-    );
+
+    return ApiException(message: error.toString());
   }
 
   String _extractErrorMessage(dynamic data) {
     if (data is Map<String, dynamic>) {
-      return data['message'] ?? 
-             data['error'] ?? 
-             'An error occurred';
+      return data['message'] ?? data['error'] ?? 'An error occurred';
     }
     return 'An error occurred';
   }

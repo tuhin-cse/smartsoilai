@@ -14,27 +14,19 @@
       },
       "oauth_client": [
         {
-          "client_id": "282896781194-bfi7n8htd72ou9n0a4i4c4ak440eunkf.apps.googleusercontent.com",
+          "client_id": "282896781194-45dun38oncc80gj2rjavm3cokj3or5v6.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.smartsoilai.smartsoilai",
-            "certificate_hash": "ce9b757f1f80286cc986db8602fedc1d03980051"
+            "certificate_hash": "a81185fcb2f23cfcaa2ea4e9c07a1ff89376ea42"
           }
         },
         {
-          "client_id": "282896781194-qr102vb64csosedv04oe9v70ft8scvf7.apps.googleusercontent.com",
+          "client_id": "282896781194-m6grpu6j4a9i5b9mvsb21u9dd21i03ms.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.smartsoilai.smartsoilai",
-            "certificate_hash": "4743f2c4a854ec0a261a1930947a0802f5ce4bcd"
-          }
-        },
-        {
-          "client_id": "282896781194-v7it6b94ba7uu9rdqtm7htak99p9f3bt.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.smartsoilai.smartsoilai",
-            "certificate_hash": "a3d914767bab6021e6da7d1ad06b2addd692270a"
+            "certificate_hash": "191e349712c23d688d8861170fee129751d3d2de"
           }
         },
         {

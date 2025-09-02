@@ -20,11 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId:
-        '282896781194-qq7iiet92kst597dvsndf2kdjmdvnel2.apps.googleusercontent.com',
-    scopes: ['email', 'profile'],
-  );
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
   bool _isLoading = false;
 
   @override
@@ -117,6 +113,8 @@ class _LoginScreenState extends State<LoginScreen> {
         throw Exception('Failed to get ID token from Firebase');
       }
     } catch (error) {
+      print('Google Sign-In Error: $error'); // Debug logging
+
       // Handle error with more specific messages
       String errorMessage = 'Google sign-in failed';
 
@@ -124,24 +122,25 @@ class _LoginScreenState extends State<LoginScreen> {
           error.toString().contains('connection')) {
         errorMessage = 'Network error. Please check your internet connection.';
       } else if (error.toString().contains('cancelled') ||
-          error.toString().contains('null')) {
-        errorMessage =
-            'Sign-in was cancelled or configuration is missing. Please try again.';
+          error.toString().contains('SIGN_IN_CANCELLED')) {
+        errorMessage = 'Sign-in was cancelled. Please try again.';
       } else if (error.toString().contains('permission') ||
           error.toString().contains('denied')) {
         errorMessage = 'Permission denied. Please check app permissions.';
       } else if (error.toString().contains('platform')) {
         errorMessage =
             'Google Sign-In is not properly configured for this device.';
+      } else if (error.toString().contains('User')) {
+        errorMessage = 'User data error. Please try again or contact support.';
       }
 
       Get.snackbar(
-        'Error',
-        '$errorMessage\nDetails: ${error.toString()}',
+        'Login Error',
+        errorMessage,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
-        duration: const Duration(seconds: 5),
+        duration: const Duration(seconds: 4),
       );
     } finally {
       setState(() {
@@ -161,20 +160,60 @@ class _LoginScreenState extends State<LoginScreen> {
         // Parse the response data
         final data = response.data;
 
+        // Debug logging
+        print('Social login response: $data');
+
+        // Validate required fields
+        if (data['accessToken'] == null ||
+            data['refreshToken'] == null ||
+            data['user'] == null) {
+          throw Exception(
+            'Invalid response from server. Missing required data.',
+          );
+        }
+
         // Use AuthController's social login method
         final authController = Get.find<AuthController>();
         await authController.socialLogin(
-          data['accessToken'],
-          data['refreshToken'],
+          data['accessToken'].toString(),
+          data['refreshToken'].toString(),
           data['user'] as Map<String, dynamic>,
         );
 
         // Navigate to main screen
         Get.offNamed('/main-navigation');
       } else {
-        throw Exception('Social login failed');
+        throw Exception(
+          'Social login failed with status: ${response.statusCode}',
+        );
       }
     } catch (error) {
+      print('Social login API error: $error'); // Debug logging
+
+      // Enhanced error handling
+      String errorMessage = 'Login failed. Please try again.';
+
+      if (error.toString().contains('network') ||
+          error.toString().contains('connection')) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (error.toString().contains('timeout')) {
+        errorMessage = 'Request timeout. Please try again.';
+      } else if (error.toString().contains('500')) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error.toString().contains('401') ||
+          error.toString().contains('403')) {
+        errorMessage = 'Authentication failed. Please try again.';
+      }
+
+      Get.snackbar(
+        'Login Failed',
+        errorMessage,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+      );
+
       rethrow;
     }
   }

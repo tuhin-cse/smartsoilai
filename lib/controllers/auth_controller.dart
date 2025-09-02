@@ -358,7 +358,15 @@ class AuthController extends GetxController {
   ) async {
     _setLoading(true);
     try {
-      // Create User object from response
+      // Debug logging
+      print('AuthController socialLogin userData: $userData');
+
+      // Validate userData
+      if (userData.isEmpty) {
+        throw Exception('User data is empty');
+      }
+
+      // Create User object from response with error handling
       final user = User.fromJson(userData);
 
       // Save tokens to secure storage
@@ -377,7 +385,11 @@ class AuthController extends GetxController {
 
       _showSuccessMessage('Login successful');
     } catch (e) {
-      _showErrorMessage('Login Failed', 'An unexpected error occurred');
+      print('AuthController socialLogin error: $e'); // Debug logging
+      _showErrorMessage(
+        'Login Failed',
+        'Failed to process user data: ${e.toString()}',
+      );
       rethrow;
     } finally {
       _setLoading(false);
