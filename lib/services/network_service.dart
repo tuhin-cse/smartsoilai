@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
 
 class NetworkService extends GetxService {
@@ -12,6 +12,8 @@ class NetworkService extends GetxService {
     milliseconds: AppConfig.connectTimeoutMs,
   );
 
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
   final Map<String, String> _defaultHeaders = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -19,8 +21,11 @@ class NetworkService extends GetxService {
 
   // Get authentication headers
   Future<Map<String, String>> _getAuthHeaders() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(AppConfig.accessTokenKey);
+    final token = await _secureStorage.read(key: AppConfig.accessTokenKey);
+
+    print(
+      'NetworkService: Getting auth headers, token: ${token?.substring(0, 20)}...',
+    ); // Debug
 
     final headers = Map<String, String>.from(_defaultHeaders);
     if (token != null) {

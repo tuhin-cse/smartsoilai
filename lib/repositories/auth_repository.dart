@@ -1,4 +1,4 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
 import '../models/auth_request.dart';
 import '../models/auth_response.dart';
@@ -8,6 +8,7 @@ import 'exceptions/api_exception.dart';
 
 class AuthRepository {
   final ApiClient _apiClient = ApiClient.instance;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   Future<AuthResponse> signin(SigninRequest request) async {
     try {
@@ -73,7 +74,9 @@ class AuthRepository {
       }
     } catch (e) {
       if (e is ApiException) rethrow;
-      throw ApiException(message: 'An unexpected error occurred during OTP verification');
+      throw ApiException(
+        message: 'An unexpected error occurred during OTP verification',
+      );
     }
   }
 
@@ -94,11 +97,15 @@ class AuthRepository {
       }
     } catch (e) {
       if (e is ApiException) rethrow;
-      throw ApiException(message: 'An unexpected error occurred while resending OTP');
+      throw ApiException(
+        message: 'An unexpected error occurred while resending OTP',
+      );
     }
   }
 
-  Future<ForgotPasswordResponse> forgotPassword(ForgotPasswordRequest request) async {
+  Future<ForgotPasswordResponse> forgotPassword(
+    ForgotPasswordRequest request,
+  ) async {
     try {
       final response = await _apiClient.post(
         '/auth/forgot-password',
@@ -115,11 +122,15 @@ class AuthRepository {
       }
     } catch (e) {
       if (e is ApiException) rethrow;
-      throw ApiException(message: 'An unexpected error occurred during password reset request');
+      throw ApiException(
+        message: 'An unexpected error occurred during password reset request',
+      );
     }
   }
 
-  Future<ResetPasswordResponse> resetPassword(ResetPasswordRequest request) async {
+  Future<ResetPasswordResponse> resetPassword(
+    ResetPasswordRequest request,
+  ) async {
     try {
       final response = await _apiClient.post(
         '/auth/reset-password',
@@ -136,7 +147,9 @@ class AuthRepository {
       }
     } catch (e) {
       if (e is ApiException) rethrow;
-      throw ApiException(message: 'An unexpected error occurred during password reset');
+      throw ApiException(
+        message: 'An unexpected error occurred during password reset',
+      );
     }
   }
 
@@ -154,7 +167,9 @@ class AuthRepository {
       }
     } catch (e) {
       if (e is ApiException) rethrow;
-      throw ApiException(message: 'An unexpected error occurred while fetching profile');
+      throw ApiException(
+        message: 'An unexpected error occurred while fetching profile',
+      );
     }
   }
 
@@ -177,7 +192,9 @@ class AuthRepository {
       }
     } catch (e) {
       if (e is ApiException) rethrow;
-      throw ApiException(message: 'An unexpected error occurred while updating profile');
+      throw ApiException(
+        message: 'An unexpected error occurred while updating profile',
+      );
     }
   }
 
@@ -201,7 +218,9 @@ class AuthRepository {
       }
     } catch (e) {
       if (e is ApiException) rethrow;
-      throw ApiException(message: 'An unexpected error occurred during token refresh');
+      throw ApiException(
+        message: 'An unexpected error occurred during token refresh',
+      );
     }
   }
 
@@ -210,36 +229,37 @@ class AuthRepository {
   }
 
   Future<void> _saveTokens(String accessToken, String refreshToken) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(AppConfig.accessTokenKey, accessToken);
-    await prefs.setString(AppConfig.refreshTokenKey, refreshToken);
+    await _secureStorage.write(
+      key: AppConfig.accessTokenKey,
+      value: accessToken,
+    );
+    await _secureStorage.write(
+      key: AppConfig.refreshTokenKey,
+      value: refreshToken,
+    );
   }
 
   Future<void> _saveUser(User user) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(AppConfig.userKey, user.toJson().toString());
+    final userJson = user.toJson().toString();
+    await _secureStorage.write(key: AppConfig.userKey, value: userJson);
   }
 
   Future<void> _clearAuthData() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(AppConfig.accessTokenKey);
-    await prefs.remove(AppConfig.refreshTokenKey);
-    await prefs.remove(AppConfig.userKey);
+    await _secureStorage.delete(key: AppConfig.accessTokenKey);
+    await _secureStorage.delete(key: AppConfig.refreshTokenKey);
+    await _secureStorage.delete(key: AppConfig.userKey);
   }
 
   Future<String?> getAccessToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(AppConfig.accessTokenKey);
+    return await _secureStorage.read(key: AppConfig.accessTokenKey);
   }
 
   Future<String?> getRefreshToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(AppConfig.refreshTokenKey);
+    return await _secureStorage.read(key: AppConfig.refreshTokenKey);
   }
 
   Future<User?> getSavedUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userJson = prefs.getString(AppConfig.userKey);
+    final userJson = await _secureStorage.read(key: AppConfig.userKey);
     if (userJson != null) {
       try {
         // Parse the saved user data
