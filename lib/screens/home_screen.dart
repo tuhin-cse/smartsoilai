@@ -134,311 +134,307 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
           // Header Section
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-              child: Column(
-                children: [
-                  // Top header with greeting and profile
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Good Morning, ${authController.firstName}',
-                              style: const TextStyle(
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              children: [
+                SizedBox(height: MediaQuery.of(context).padding.top),
+                // Top header with greeting and profile
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Good Morning, ${authController.firstName}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            _getCurrentDate(),
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: AppColors.primary400,
+                      backgroundImage:
+                          authController.profileImage != null
+                              ? NetworkImage(authController.profileImage!)
+                              : null,
+                      child:
+                          authController.profileImage == null
+                              ? const Icon(
+                                Icons.person,
                                 color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              _getCurrentDate(),
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: AppColors.primary400,
-                        backgroundImage:
-                            authController.profileImage != null
-                                ? NetworkImage(authController.profileImage!)
-                                : null,
-                        child:
-                            authController.profileImage == null
-                                ? const Icon(
-                                  Icons.person,
-                                  color: Colors.white,
-                                  size: 24,
-                                )
-                                : null,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
+                                size: 24,
+                              )
+                              : null,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
 
-                  // Slider Cards (Weather + Satellite)
-                  SizedBox(
-                    height: 240,
-                    child: PageView(
-                      controller: _pageController,
-                      onPageChanged: (index) {
-                        setState(() {
-                          _currentSlide = index;
-                        });
-                      },
-                      children: [
-                        // Weather Card
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
-                              width: 1,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              // Location
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.location_on,
-                                    color: Colors.white.withOpacity(0.8),
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  const Text(
-                                    'Jessore, Khulna',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-
-                              // Temperature and weather
-                              Row(
-                                children: [
-                                  const Text(
-                                    '27°C',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 42,
-                                      fontWeight: FontWeight.w300,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Text(
-                                              'H: 23°',
-                                              style: TextStyle(
-                                                color: Colors.white.withOpacity(
-                                                  0.8,
-                                                ),
-                                                fontSize: 13,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 16),
-                                            const Icon(
-                                              Icons.wb_sunny,
-                                              color: Colors.yellow,
-                                              size: 20,
-                                            ),
-                                          ],
-                                        ),
-                                        Text(
-                                          'L: 14°',
-                                          style: TextStyle(
-                                            color: Colors.white.withOpacity(
-                                              0.8,
-                                            ),
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-
-                              // Weather details
-                              Row(
-                                children: [
-                                  _buildWeatherDetail('Humidity', '40%'),
-                                  _buildWeatherDetail('Precipitation', '5.1 M'),
-                                  _buildWeatherDetail('Pressure', '460 hpa'),
-                                  _buildWeatherDetail('Wind', '23 mph'),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-
-                              // Time indicators
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    '5:20 am',
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.8),
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                  Container(
-                                    height: 1,
-                                    width: 100,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.yellow,
-                                          Colors.orange,
-                                          Colors.white.withOpacity(0.3),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    '7:20 Pm',
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.8),
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                // Slider Cards (Weather + Satellite)
+                SizedBox(
+                  height: 240,
+                  child: PageView(
+                    controller: _pageController,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentSlide = index;
+                      });
+                    },
+                    children: [
+                      // Weather Card
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1,
                           ),
                         ),
-
-                        // Satellite Card
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
-                              width: 1,
-                            ),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: Stack(
+                        child: Column(
+                          children: [
+                            // Location
+                            Row(
                               children: [
-                                // Satellite background image
-                                Container(
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                  decoration: const BoxDecoration(
-                                    image: DecorationImage(
-                                      image: AssetImage(
-                                        'assets/images/field.png',
-                                      ),
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
+                                Icon(
+                                  Icons.location_on,
+                                  color: Colors.white.withOpacity(0.8),
+                                  size: 16,
                                 ),
-
-                                // Live indicator
-                                Positioned(
-                                  top: 16,
-                                  right: 16,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.red,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Container(
-                                          width: 6,
-                                          height: 6,
-                                          decoration: const BoxDecoration(
-                                            color: Colors.white,
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        const Text(
-                                          'Live',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-
-                                // Field info overlay
-                                Positioned(
-                                  bottom: 16,
-                                  left: 16,
-                                  right: 16,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black.withOpacity(0.6),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Text(
-                                      'Your Field: 2.5 acres\nSoil Moisture: Good\nCrop Health: Excellent',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        height: 1.3,
-                                      ),
-                                    ),
+                                const SizedBox(width: 4),
+                                const Text(
+                                  'Jessore, Khulna',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ],
                             ),
+                            const SizedBox(height: 8),
+
+                            // Temperature and weather
+                            Row(
+                              children: [
+                                const Text(
+                                  '27°C',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 42,
+                                    fontWeight: FontWeight.w300,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            'H: 23°',
+                                            style: TextStyle(
+                                              color: Colors.white.withOpacity(
+                                                0.8,
+                                              ),
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 16),
+                                          const Icon(
+                                            Icons.wb_sunny,
+                                            color: Colors.yellow,
+                                            size: 20,
+                                          ),
+                                        ],
+                                      ),
+                                      Text(
+                                        'L: 14°',
+                                        style: TextStyle(
+                                          color: Colors.white.withOpacity(0.8),
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Weather details
+                            Row(
+                              children: [
+                                _buildWeatherDetail('Humidity', '40%'),
+                                _buildWeatherDetail('Precipitation', '5.1 M'),
+                                _buildWeatherDetail('Pressure', '460 hpa'),
+                                _buildWeatherDetail('Wind', '23 mph'),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Time indicators
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '5:20 am',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 11,
+                                  ),
+                                ),
+                                Container(
+                                  height: 1,
+                                  width: 100,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.yellow,
+                                        Colors.orange,
+                                        Colors.white.withOpacity(0.3),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  '7:20 Pm',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Satellite Card
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  // const SizedBox(height: 16),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Stack(
+                            children: [
+                              // Satellite background image
+                              Container(
+                                width: double.infinity,
+                                height: double.infinity,
+                                decoration: const BoxDecoration(
+                                  image: DecorationImage(
+                                    image: AssetImage(
+                                      'assets/images/field.png',
+                                    ),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
 
-                  // Page Indicators
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildPageIndicator(0),
-                      const SizedBox(width: 8),
-                      _buildPageIndicator(1),
+                              // Live indicator
+                              Positioned(
+                                top: 16,
+                                right: 16,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 6,
+                                        height: 6,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      const Text(
+                                        'Live',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+                              // Field info overlay
+                              Positioned(
+                                bottom: 16,
+                                left: 16,
+                                right: 16,
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.6),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'Your Field: 2.5 acres\nSoil Moisture: Good\nCrop Health: Excellent',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 16),
+
+                // Page Indicators
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildPageIndicator(0),
+                    const SizedBox(width: 8),
+                    _buildPageIndicator(1),
+                  ],
+                ),
+              ],
             ),
           ),
 
