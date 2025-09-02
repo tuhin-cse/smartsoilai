@@ -18,17 +18,17 @@ class SimpleImagePickerBottomSheet extends StatelessWidget {
 
       final ImagePicker picker = ImagePicker();
 
-      // Show loading indicator
-      Get.snackbar(
-        'Loading',
-        source == ImageSource.camera
-            ? 'Opening camera...'
-            : 'Opening photo library...',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.blue,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 1),
-      );
+      // // Show loading indicator
+      // Get.snackbar(
+      //   'Loading',
+      //   source == ImageSource.camera
+      //       ? 'Opening camera...'
+      //       : 'Opening photo library...',
+      //   snackPosition: SnackPosition.BOTTOM,
+      //   backgroundColor: Colors.blue,
+      //   colorText: Colors.white,
+      //   duration: const Duration(seconds: 1),
+      // );
 
       final XFile? image = await picker.pickImage(
         source: source,
@@ -55,14 +55,7 @@ class SimpleImagePickerBottomSheet extends StatelessWidget {
 
         onImageSelected(imagePath);
 
-        Get.snackbar(
-          'Success',
-          'Image selected successfully!',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 2),
-        );
+        
       }
     } catch (e) {
       String errorMessage = 'Failed to pick image';

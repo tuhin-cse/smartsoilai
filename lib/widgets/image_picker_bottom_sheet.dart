@@ -33,16 +33,6 @@ class ImagePickerBottomSheet extends StatelessWidget {
       if (Platform.isIOS && source == ImageSource.gallery) {
         final ImagePicker picker = ImagePicker();
 
-        // Show loading indicator
-        Get.snackbar(
-          'Loading',
-          'Opening photo library...',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.blue,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 1),
-        );
-
         final XFile? image = await picker.pickImage(
           source: source,
           imageQuality: 80,
@@ -56,15 +46,6 @@ class ImagePickerBottomSheet extends StatelessWidget {
           await Future.delayed(const Duration(milliseconds: 300));
 
           onImageSelected(image.path);
-
-          Get.snackbar(
-            'Success',
-            'Image selected successfully!',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green,
-            colorText: Colors.white,
-            duration: const Duration(seconds: 2),
-          );
         } else {
           // User cancelled the picker - just close bottom sheet
           Get.back();
@@ -175,15 +156,6 @@ class ImagePickerBottomSheet extends StatelessWidget {
         await Future.delayed(const Duration(milliseconds: 300));
 
         onImageSelected(image.path);
-
-        Get.snackbar(
-          'Success',
-          'Image selected successfully!',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 2),
-        );
       } else {
         // User cancelled the picker - just close bottom sheet
         Get.back();
