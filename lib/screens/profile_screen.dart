@@ -87,18 +87,21 @@ class ProfileScreen extends StatelessWidget {
                                 bottom: viewInsets.bottom + 20,
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.all(24.0),
+                                padding: const EdgeInsets.all(20),
                                 child: Column(
                                   children: [
-                                    const SizedBox(height: 20),
+                                    const SizedBox(height: 5),
                                     // Profile Image Section
                                     Stack(
                                       children: [
                                         Container(
-                                          width: 120,
-                                          height: 120,
+                                          width: 160,
+                                          height: 160,
                                           decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
+                                            shape: BoxShape.rectangle,
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
                                             border: Border.all(
                                               color: const Color(0xFFE8EBF0),
                                               width: 4,
@@ -115,7 +118,7 @@ class ProfileScreen extends StatelessWidget {
                                           ),
                                           child: ClipRRect(
                                             borderRadius: BorderRadius.circular(
-                                              60,
+                                              20,
                                             ),
                                             child: Obx(() {
                                               // Show selected local image if available
@@ -165,7 +168,7 @@ class ProfileScreen extends StatelessWidget {
                                         ),
                                         Positioned(
                                           right: 0,
-                                          bottom: 8,
+                                          bottom: 4,
                                           child: Obx(
                                             () => GestureDetector(
                                               onTap:
