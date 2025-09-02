@@ -2,8 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smartsoilai/widgets/profile_shimmer.dart';
-import 'package:smartsoilai/widgets/image_picker_bottom_sheet.dart';
+import 'package:smartsoilai/widgets/simple_image_picker_bottom_sheet.dart';
 import '../controllers/profile_controller.dart';
+import '../services/user_service.dart';
 import '../widgets/input.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -116,70 +117,129 @@ class ProfileScreen extends StatelessWidget {
                                             borderRadius: BorderRadius.circular(
                                               60,
                                             ),
-                                            child: Obx(
-                                              () =>
-                                                  controller
-                                                              .profileImagePath
-                                                              .value !=
-                                                          null
-                                                      ? Image.file(
-                                                        File(
-                                                          controller
-                                                              .profileImagePath
-                                                              .value!,
-                                                        ),
-                                                        fit: BoxFit.cover,
-                                                      )
-                                                      : Image.asset(
-                                                        'assets/images/icon.png',
-                                                        fit: BoxFit.cover,
-                                                      ),
-                                            ),
+                                            child: Obx(() {
+                                              // Show selected local image if available
+                                              if (controller
+                                                      .profileImagePath
+                                                      .value !=
+                                                  null) {
+                                                return Image.file(
+                                                  File(
+                                                    controller
+                                                        .profileImagePath
+                                                        .value!,
+                                                  ),
+                                                  fit: BoxFit.cover,
+                                                );
+                                              }
+
+                                              // Show network image from user service
+                                              final userService =
+                                                  UserService.to;
+                                              if (userService
+                                                  .profileImage
+                                                  .isNotEmpty) {
+                                                return Image.network(
+                                                  userService.profileImage,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (
+                                                    context,
+                                                    error,
+                                                    stackTrace,
+                                                  ) {
+                                                    return Image.asset(
+                                                      'assets/images/icon.png',
+                                                      fit: BoxFit.cover,
+                                                    );
+                                                  },
+                                                );
+                                              }
+
+                                              // Default image
+                                              return Image.asset(
+                                                'assets/images/icon.png',
+                                                fit: BoxFit.cover,
+                                              );
+                                            }),
                                           ),
                                         ),
                                         Positioned(
                                           right: 0,
                                           bottom: 8,
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              showModalBottomSheet(
-                                                context: context,
-                                                backgroundColor:
-                                                    Colors.transparent,
-                                                isScrollControlled: true,
-                                                builder:
-                                                    (
-                                                      context,
-                                                    ) => ImagePickerBottomSheet(
-                                                      onImageSelected:
-                                                          controller
-                                                              .onImageSelected,
-                                                    ),
-                                              );
-                                            },
-                                            child: Container(
-                                              width: 36,
-                                              height: 36,
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFF62BE24),
-                                                shape: BoxShape.circle,
-                                                border: Border.all(
-                                                  color: Colors.white,
-                                                  width: 3,
-                                                ),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black
-                                                        .withOpacity(0.15),
-                                                    blurRadius: 8,
-                                                    offset: const Offset(0, 2),
+                                          child: Obx(
+                                            () => GestureDetector(
+                                              onTap:
+                                                  controller
+                                                          .isImageUploading
+                                                          .value
+                                                      ? null
+                                                      : () {
+                                                        showModalBottomSheet(
+                                                          context: context,
+                                                          backgroundColor:
+                                                              Colors
+                                                                  .transparent,
+                                                          isScrollControlled:
+                                                              true,
+                                                          builder:
+                                                              (
+                                                                context,
+                                                              ) => SimpleImagePickerBottomSheet(
+                                                                onImageSelected:
+                                                                    controller
+                                                                        .onImageSelected,
+                                                              ),
+                                                        );
+                                                      },
+                                              child: Container(
+                                                width: 36,
+                                                height: 36,
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      controller
+                                                              .isImageUploading
+                                                              .value
+                                                          ? Colors.grey
+                                                          : const Color(
+                                                            0xFF62BE24,
+                                                          ),
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                    color: Colors.white,
+                                                    width: 3,
                                                   ),
-                                                ],
-                                              ),
-                                              child: const Icon(
-                                                Icons.camera_alt,
-                                                color: Colors.white,
-                                                size: 18,
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black
+                                                          .withOpacity(0.15),
+                                                      blurRadius: 8,
+                                                      offset: const Offset(
+                                                        0,
+                                                        2,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child:
+                                                    controller
+                                                            .isImageUploading
+                                                            .value
+                                                        ? const SizedBox(
+                                                          width: 18,
+                                                          height: 18,
+                                                          child: CircularProgressIndicator(
+                                                            strokeWidth: 2,
+                                                            valueColor:
+                                                                AlwaysStoppedAnimation<
+                                                                  Color
+                                                                >(Colors.white),
+                                                          ),
+                                                        )
+                                                        : const Icon(
+                                                          Icons.camera_alt,
+                                                          color: Colors.white,
+                                                          size: 18,
+                                                        ),
                                               ),
                                             ),
                                           ),

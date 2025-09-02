@@ -10,6 +10,7 @@ class ProfileController extends GetxController {
   final genderController = ''.obs;
   final isLoading = false.obs;
   final isUpdateLoading = false.obs;
+  final isImageUploading = false.obs;
   final isButtonEnabled = false.obs;
   final profileImagePath = RxnString();
 
@@ -116,11 +117,20 @@ class ProfileController extends GetxController {
     genderController.value = value;
   }
 
-  void onImageSelected(String? imagePath) {
+  void onImageSelected(String? imagePath) async {
     if (imagePath != null) {
       profileImagePath.value = imagePath;
-      // Update through user service
-      UserService.to.updateProfileImage(imagePath);
+
+      // Upload image through user service
+      isImageUploading.value = true;
+      try {
+        await UserService.to.updateProfileImage(imagePath);
+      } catch (e) {
+        // If upload fails, revert the local image
+        profileImagePath.value = null;
+      } finally {
+        isImageUploading.value = false;
+      }
     }
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/user.dart';
@@ -90,9 +91,34 @@ class UserService extends GetxService {
 
   Future<void> updateProfileImage(String imagePath) async {
     try {
-      // Here you would upload the image to your server
-      // For now, we'll just update the local data
-      userData['profileImage'] = imagePath;
+      // Validate file exists
+      final file = File(imagePath);
+      if (!file.existsSync()) {
+        throw 'Selected image file not found';
+      }
+
+      // Validate file size (optional - max 5MB)
+      final fileSizeInBytes = await file.length();
+      final fileSizeInMB = fileSizeInBytes / (1024 * 1024);
+      if (fileSizeInMB > 5) {
+        throw 'Image file is too large. Please select an image smaller than 5MB.';
+      }
+
+      // Upload image to server
+      final response = await _profileRepository.uploadProfileImage(imagePath);
+
+      // Update local data with the new image URL from server response
+      if (response.containsKey('profileImage')) {
+        userData['profileImage'] = response['profileImage'];
+      } else if (response.containsKey('data') &&
+          response['data'].containsKey('profileImage')) {
+        userData['profileImage'] = response['data']['profileImage'];
+      } else if (response.containsKey('url')) {
+        userData['profileImage'] = response['url'];
+      } else {
+        // Fallback: use local path temporarily
+        userData['profileImage'] = imagePath;
+      }
 
       Get.snackbar(
         'Success',
@@ -102,13 +128,30 @@ class UserService extends GetxService {
         colorText: Colors.white,
       );
     } catch (e) {
+      String errorMessage = 'Failed to update profile picture';
+
+      if (e.toString().contains('Invalid file type')) {
+        errorMessage =
+            'Invalid file type. Please select a JPEG, PNG, WebP, or GIF image.';
+      } else if (e.toString().contains('too large')) {
+        errorMessage = e.toString();
+      } else if (e.toString().contains('Network error') ||
+          e.toString().contains('timeout')) {
+        errorMessage =
+            'Network error. Please check your connection and try again.';
+      } else if (e.toString().contains('not found')) {
+        errorMessage = e.toString();
+      }
+
       Get.snackbar(
         'Error',
-        'Failed to update profile picture',
+        errorMessage,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        duration: const Duration(seconds: 4),
       );
+      rethrow;
     }
   }
 

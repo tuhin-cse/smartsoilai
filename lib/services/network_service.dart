@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http_parser/http_parser.dart';
 import '../config/app_config.dart';
 
 class NetworkService extends GetxService {
@@ -174,6 +175,85 @@ class NetworkService extends GetxService {
       return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
     } on SocketException catch (_) {
       return false;
+    }
+  }
+
+  // Upload file (multipart/form-data)
+  Future<Map<String, dynamic>> uploadFile(
+    String endpoint,
+    String filePath, {
+    String fieldName = 'file',
+    Map<String, String>? additionalFields,
+    Map<String, String>? headers,
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl$endpoint');
+      final authHeaders = await _getAuthHeaders();
+
+      // Create multipart request
+      final request = http.MultipartRequest('POST', url);
+
+      // Add auth headers (except content-type as it will be set automatically)
+      final allHeaders = Map<String, String>.from(authHeaders);
+      allHeaders.remove('Content-Type'); // Remove to let multipart set it
+      request.headers.addAll(allHeaders);
+
+      if (headers != null) {
+        request.headers.addAll(headers);
+      }
+
+      // Add file with explicit MIME type
+      final file = File(filePath);
+      if (!file.existsSync()) {
+        throw 'File not found: $filePath';
+      }
+
+      // Get file extension and determine MIME type
+      final extension = filePath.split('.').last.toLowerCase();
+      String mimeType;
+
+      switch (extension) {
+        case 'jpg':
+        case 'jpeg':
+          mimeType = 'image/jpeg';
+          break;
+        case 'png':
+          mimeType = 'image/png';
+          break;
+        case 'gif':
+          mimeType = 'image/gif';
+          break;
+        case 'webp':
+          mimeType = 'image/webp';
+          break;
+        default:
+          mimeType = 'image/jpeg'; // Default to JPEG
+      }
+
+      final multipartFile = http.MultipartFile.fromBytes(
+        fieldName,
+        await file.readAsBytes(),
+        filename: file.path.split('/').last,
+        contentType: MediaType.parse(mimeType),
+      );
+      request.files.add(multipartFile);
+
+      // Add additional fields if any
+      if (additionalFields != null) {
+        request.fields.addAll(additionalFields);
+      }
+
+      // Send request
+      final streamedResponse = await request.send().timeout(timeout);
+      final response = await http.Response.fromStream(streamedResponse);
+
+      return _handleResponse(response);
+    } on TimeoutException {
+      throw 'Request timeout';
+    } on SocketException {
+      throw 'No internet connection';
+    } catch (e) {
+      throw 'Network error: $e';
     }
   }
 }

@@ -21,6 +21,18 @@ class ProfileRepository {
     }
   }
 
+  Future<Map<String, dynamic>> uploadProfileImage(String imagePath) async {
+    try {
+      return await _networkService.uploadFile(
+        '/auth/upload-profile-image',
+        imagePath,
+        fieldName: 'file',
+      );
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   ApiException _handleError(dynamic error) {
     if (error is ApiException) return error;
     return ApiException(message: error.toString());

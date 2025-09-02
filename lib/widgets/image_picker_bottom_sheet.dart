@@ -28,7 +28,51 @@ class ImagePickerBottomSheet extends StatelessWidget {
         return;
       }
 
-      // Request permissions based on platform
+      // For iOS, try to pick image directly without explicit permission check
+      // iOS 14+ has built-in limited photo access that works without permission_handler
+      if (Platform.isIOS && source == ImageSource.gallery) {
+        final ImagePicker picker = ImagePicker();
+
+        // Show loading indicator
+        Get.snackbar(
+          'Loading',
+          'Opening photo library...',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.blue,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 1),
+        );
+
+        final XFile? image = await picker.pickImage(
+          source: source,
+          imageQuality: 80,
+          maxWidth: 800,
+          maxHeight: 800,
+        );
+
+        if (image != null) {
+          // Close bottom sheet and show success
+          Get.back();
+          await Future.delayed(const Duration(milliseconds: 300));
+
+          onImageSelected(image.path);
+
+          Get.snackbar(
+            'Success',
+            'Image selected successfully!',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+            duration: const Duration(seconds: 2),
+          );
+        } else {
+          // User cancelled the picker - just close bottom sheet
+          Get.back();
+        }
+        return;
+      }
+
+      // For Android and iOS camera, continue with permission checking
       PermissionStatus permissionStatus;
       if (source == ImageSource.camera) {
         permissionStatus = await Permission.camera.request();
@@ -62,7 +106,7 @@ class ImagePickerBottomSheet extends StatelessWidget {
           }
         }
       } else {
-        // For gallery access, handle different Android versions
+        // For Android gallery access
         if (Platform.isAndroid) {
           // For Android 13+ (API 33+), use READ_MEDIA_IMAGES
           // For older versions, use READ_EXTERNAL_STORAGE
@@ -73,8 +117,8 @@ class ImagePickerBottomSheet extends StatelessWidget {
             permissionStatus = await Permission.storage.request();
           }
         } else {
-          // For iOS
-          permissionStatus = await Permission.photos.request();
+          // This should not reach here for iOS gallery as we handle it above
+          permissionStatus = PermissionStatus.granted;
         }
       }
 
