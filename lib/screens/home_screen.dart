@@ -291,6 +291,115 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ))
                                         ElevatedButton(
                                           onPressed: () async {
+                                            // Request location permission with proper dialog
+                                            bool serviceEnabled =
+                                                await Geolocator.isLocationServiceEnabled();
+                                            if (!serviceEnabled) {
+                                              // Show dialog to enable location services
+                                              Get.dialog(
+                                                AlertDialog(
+                                                  title: const Text(
+                                                    'Location Services Disabled',
+                                                  ),
+                                                  content: const Text(
+                                                    'Location services are disabled. Please enable location services to get weather data.',
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed:
+                                                          () => Get.back(),
+                                                      child: const Text(
+                                                        'Cancel',
+                                                      ),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () async {
+                                                        Get.back();
+                                                        await Geolocator.openLocationSettings();
+                                                      },
+                                                      child: const Text(
+                                                        'Open Settings',
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                              return;
+                                            }
+
+                                            LocationPermission permission =
+                                                await Geolocator.checkPermission();
+                                            if (permission ==
+                                                LocationPermission.denied) {
+                                              permission =
+                                                  await Geolocator.requestPermission();
+                                            }
+
+                                            if (permission ==
+                                                LocationPermission
+                                                    .deniedForever) {
+                                              // Show dialog to go to app settings
+                                              Get.dialog(
+                                                AlertDialog(
+                                                  title: const Text(
+                                                    'Permission Required',
+                                                  ),
+                                                  content: const Text(
+                                                    'Location permission is permanently denied. Please enable it in app settings to get weather data.',
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed:
+                                                          () => Get.back(),
+                                                      child: const Text(
+                                                        'Cancel',
+                                                      ),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () async {
+                                                        Get.back();
+                                                        await Geolocator.openAppSettings();
+                                                      },
+                                                      child: const Text(
+                                                        'Open Settings',
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            } else if (permission ==
+                                                    LocationPermission.always ||
+                                                permission ==
+                                                    LocationPermission
+                                                        .whileInUse) {
+                                              // Permission granted, refresh weather data
+                                              weatherService
+                                                  .refreshWeatherData();
+                                            }
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.white
+                                                .withOpacity(0.2),
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 8,
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            'Request Permission',
+                                            style: TextStyle(fontSize: 12),
+                                          ),
+                                        ),
+                                      if (weatherService.error.value.contains(
+                                        'location',
+                                      ))
+                                        const SizedBox(width: 8),
+                                      if (weatherService.error.value.contains(
+                                        'location',
+                                      ))
+                                        ElevatedButton(
+                                          onPressed: () async {
                                             // Open location settings
                                             await Geolocator.openLocationSettings();
                                           },

@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../constants/api_constants.dart';
 
 class WeatherData {
@@ -135,33 +134,61 @@ class WeatherService extends GetxController {
   }
 
   Future<bool> _requestLocationPermission() async {
-    final status = await Permission.location.status;
-    if (status.isGranted) {
-      return true;
+    // Check if location services are enabled
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      error.value =
+          'Location services are disabled. Please enable location services.';
+      return false;
     }
 
-    if (status.isDenied) {
-      final result = await Permission.location.request();
-      return result.isGranted;
+    // Check location permission
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        error.value =
+            'Location permission denied. Please allow location access.';
+        return false;
+      }
     }
 
-    return false;
+    if (permission == LocationPermission.deniedForever) {
+      error.value =
+          'Location permissions are permanently denied. Please enable them in app settings.';
+      return false;
+    }
+
+    return true;
   }
 
   Future<Position?> _getCurrentPosition() async {
     try {
+      print('🌤️ WeatherService: Starting location request...');
+
       final hasPermission = await _requestLocationPermission();
       if (!hasPermission) {
-        error.value =
-            'Location permission is required to get weather data. Please enable location services in settings.';
+        print(
+          '🌤️ WeatherService: Location permission denied - ${error.value}',
+        );
         return null;
       }
 
-      return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 10),
+      print(
+        '🌤️ WeatherService: Location permission granted, getting position...',
       );
+
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 15),
+      );
+
+      print(
+        '🌤️ WeatherService: Position obtained: ${position.latitude}, ${position.longitude}',
+      );
+      return position;
     } catch (e) {
+      print('🌤️ WeatherService: Error getting position: $e');
       error.value =
           'Unable to get your location. Please check GPS settings and try again.';
       return null;
@@ -169,17 +196,22 @@ class WeatherService extends GetxController {
   }
 
   Future<void> fetchWeatherData() async {
+    print('🌤️ WeatherService: Starting weather data fetch...');
     isLoading.value = true;
     error.value = '';
 
     try {
       final position = await _getCurrentPosition();
       if (position == null) {
+        print('🌤️ WeatherService: Position is null, stopping fetch');
         isLoading.value = false;
         return;
       }
 
       final langCode = Get.locale?.languageCode ?? 'en';
+      print(
+        '🌤️ WeatherService: Making API request with position: ${position.latitude}, ${position.longitude}',
+      );
 
       final response = await _dio.get(
         '/forecast.json',
@@ -192,14 +224,23 @@ class WeatherService extends GetxController {
         },
       );
 
+      print('🌤️ WeatherService: API Response Status: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         weatherData.value = WeatherData.fromJson(response.data);
+        print(
+          '🌤️ WeatherService: Weather data loaded successfully: ${weatherData.value?.temperature}°C at ${weatherData.value?.location}',
+        );
       } else {
         error.value = 'Failed to fetch weather data: ${response.statusCode}';
+        print(
+          '🌤️ WeatherService: API failed with status: ${response.statusCode}',
+        );
         _loadMockData(); // Fallback to mock data
       }
     } catch (e) {
       error.value = 'Weather API error: ${e.toString()}';
+      print('🌤️ WeatherService: API error: $e');
       _loadMockData(); // Fallback to mock data
     } finally {
       isLoading.value = false;
@@ -207,6 +248,7 @@ class WeatherService extends GetxController {
   }
 
   void _loadMockData() {
+    print('Loading mock weather data as fallback');
     // Mock weather data for testing when API fails
     final now = DateTime.now();
     final mockHourlyForecast = List.generate(24, (index) {
