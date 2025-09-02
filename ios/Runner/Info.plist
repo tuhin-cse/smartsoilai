@@ -26,12 +26,17 @@
 				<string>com.googleusercontent.apps.282896781194-qq7iiet92kst597dvsndf2kdjmdvnel2</string>
 			</array>
 		</dict>
-		
-		
 	</array>
 	<key>GIDClientID</key>
 	<string>282896781194-qq7iiet92kst597dvsndf2kdjmdvnel2.apps.googleusercontent.com</string>
-
+	<key>CFBundleAllowMixedLocalizations</key>
+	<true/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>googlegmail</string>
+		<string>googlechrome</string>
+		<string>googlechromes</string>
+	</array>
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>

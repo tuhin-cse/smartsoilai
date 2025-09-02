@@ -3,6 +3,7 @@ import UIKit
 import flutter_local_notifications
 import FirebaseCore
 import FirebaseMessaging
+import GoogleSignIn
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -11,6 +12,10 @@ import FirebaseMessaging
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     FirebaseApp.configure()
+    
+    // Configure Google Sign-In with proper configuration
+    let config = GIDConfiguration(clientID: "282896781194-qq7iiet92kst597dvsndf2kdjmdvnel2.apps.googleusercontent.com")
+    GIDSignIn.sharedInstance.configuration = config
     
     // Set messaging delegate
     Messaging.messaging().delegate = self
@@ -34,6 +39,17 @@ import FirebaseMessaging
     
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+  
+  // Handle Google Sign-In URL
+  @available(iOS 9.0, *)
+  override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+    return GIDSignIn.sharedInstance.handle(url)
+  }
+  
+  // Handle Google Sign-In URL (iOS 8 and below)
+  override func application(_ application: UIApplication, open url: URL, sourceApplication: String?, annotation: Any) -> Bool {
+    return GIDSignIn.sharedInstance.handle(url)
   }
 }
 

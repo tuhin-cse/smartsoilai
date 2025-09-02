@@ -20,7 +20,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final GoogleSignIn _googleSignIn = GoogleSignIn.standard();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId:
+        '282896781194-qq7iiet92kst597dvsndf2kdjmdvnel2.apps.googleusercontent.com',
+    scopes: ['email', 'profile'],
+  );
   bool _isLoading = false;
 
   @override
@@ -60,12 +64,15 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _handleSocialLogin() async {
+  Future<void> _handleSocialLogin() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
+      // Sign out first to ensure clean state
+      await _googleSignIn.signOut();
+
       // Sign in with Google
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
@@ -79,6 +86,13 @@ class _LoginScreenState extends State<LoginScreen> {
       // Get authentication details
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
+
+      // Check if we got the required tokens
+      if (googleAuth.accessToken == null || googleAuth.idToken == null) {
+        throw Exception(
+          'Failed to get authentication tokens from Google. Please try again.',
+        );
+      }
 
       // Create Firebase credential
       final firebase_auth.AuthCredential credential = firebase_auth
@@ -100,16 +114,34 @@ class _LoginScreenState extends State<LoginScreen> {
         // Send to backend API
         await _socialLogin(idToken);
       } else {
-        throw Exception('Failed to get ID token');
+        throw Exception('Failed to get ID token from Firebase');
       }
     } catch (error) {
-      // Handle error
+      // Handle error with more specific messages
+      String errorMessage = 'Google sign-in failed';
+
+      if (error.toString().contains('network') ||
+          error.toString().contains('connection')) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (error.toString().contains('cancelled') ||
+          error.toString().contains('null')) {
+        errorMessage =
+            'Sign-in was cancelled or configuration is missing. Please try again.';
+      } else if (error.toString().contains('permission') ||
+          error.toString().contains('denied')) {
+        errorMessage = 'Permission denied. Please check app permissions.';
+      } else if (error.toString().contains('platform')) {
+        errorMessage =
+            'Google Sign-In is not properly configured for this device.';
+      }
+
       Get.snackbar(
         'Error',
-        'Google sign-in failed: ${error.toString()}',
+        '$errorMessage\nDetails: ${error.toString()}',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        duration: const Duration(seconds: 5),
       );
     } finally {
       setState(() {
