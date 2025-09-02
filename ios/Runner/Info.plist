@@ -16,6 +16,21 @@
 	<string>smartsoilai</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.282896781194-qq7iiet92kst597dvsndf2kdjmdvnel2</string>
+			</array>
+		</dict>
+		
+		
+	</array>
+	<key>GIDClientID</key>
+	<string>282896781194-qq7iiet92kst597dvsndf2kdjmdvnel2.apps.googleusercontent.com</string>
+
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
@@ -56,6 +71,8 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+
+
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app needs location access to provide location-based soil analysis and weather information.</string>
 	<key>NSCameraUsageDescription</key>
