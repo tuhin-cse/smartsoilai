@@ -15,29 +15,39 @@ class ChatScreen extends StatelessWidget {
     final authController = Get.find<AuthController>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F8),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(
-              child: Obx(() {
-                if (controller.isRecording.value) {
-                  return _buildRecordingState(controller);
-                } else if (controller.messages.isEmpty) {
-                  return _buildEmptyState();
-                } else {
-                  return _buildMessagesList(controller, authController);
+      backgroundColor: Colors.transparent,
+      extendBody: true,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [AppColors.primary50, AppColors.backgroundLight],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: Obx(() {
+                  if (controller.isRecording.value) {
+                    return _buildRecordingState(controller);
+                  } else if (controller.messages.isEmpty) {
+                    return _buildEmptyState();
+                  } else {
+                    return _buildMessagesList(controller, authController);
+                  }
+                }),
+              ),
+              Obx(() {
+                if (!controller.isRecording.value) {
+                  return _buildInputSection(controller);
                 }
+                return const SizedBox.shrink();
               }),
-            ),
-            Obx(() {
-              if (!controller.isRecording.value) {
-                return _buildInputSection(controller);
-              }
-              return const SizedBox.shrink();
-            }),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -46,10 +56,18 @@ class ChatScreen extends StatelessWidget {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: const BoxDecoration(
-        border: Border(
+      decoration: BoxDecoration(
+        color: AppColors.backgroundLight,
+        border: const Border(
           bottom: BorderSide(color: Color(0xFFE5E5E5), width: 1),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -58,9 +76,16 @@ class ChatScreen extends StatelessWidget {
             child: Container(
               width: 38,
               height: 38,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.primary100,
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: const Icon(
                 Icons.arrow_back_ios_new,
@@ -69,14 +94,21 @@ class ChatScreen extends StatelessWidget {
               ),
             ),
           ),
-          const Expanded(
+          Expanded(
             child: Text(
               'Soil AI',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
+                shadows: [
+                  Shadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 2,
+                    offset: Offset(0, 1),
+                  ),
+                ],
               ),
             ),
           ),
@@ -93,28 +125,57 @@ class ChatScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/images/logo.png',
-              width: 120,
-              height: 120,
+            Container(
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  width: 120,
+                  height: 120,
+                ),
+              ),
             ),
             const SizedBox(height: 32),
-            const Text(
-              'How Can I help You?',
+            Text(
+              'How Can I Help You?',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 26,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
+                shadows: [
+                  Shadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 2,
+                    offset: Offset(0, 1),
+                  ),
+                ],
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Tell me what you need crop advice, soil test help, or pest diagnosis. I\'ve got you covered!',
+            Text(
+              'Tell me what you need: crop advice, soil test help, or pest diagnosis. I\'ve got you covered!',
               style: TextStyle(
                 fontSize: 16,
                 color: AppColors.textSecondary,
                 height: 1.5,
+                shadows: [
+                  Shadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 1,
+                    offset: Offset(0, 1),
+                  ),
+                ],
               ),
               textAlign: TextAlign.center,
             ),
@@ -124,7 +185,10 @@ class ChatScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMessagesList(ChatController controller, AuthController authController) {
+  Widget _buildMessagesList(
+    ChatController controller,
+    AuthController authController,
+  ) {
     return Column(
       children: [
         Expanded(
@@ -140,24 +204,39 @@ class ChatScreen extends StatelessWidget {
         Obx(() {
           if (controller.isLoading.value) {
             return Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: const Row(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      color: AppColors.primary500,
-                      strokeWidth: 2,
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary100,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary500,
+                        strokeWidth: 2,
+                      ),
                     ),
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   Text(
                     'AI is thinking...',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 16,
                       color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -180,39 +259,65 @@ class ChatScreen extends StatelessWidget {
             Container(
               margin: const EdgeInsets.only(right: 12),
               child: CircleAvatar(
-                radius: 20,
+                radius: 22,
                 backgroundColor: AppColors.primary100,
                 child: Image.asset(
                   'assets/icons/ai_avatar.png',
-                  width: 24,
-                  height: 24,
+                  width: 26,
+                  height: 26,
                 ),
               ),
             ),
           ],
           Expanded(
             child: Column(
-              crossAxisAlignment: message.isUser 
-                  ? CrossAxisAlignment.end 
-                  : CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  message.isUser
+                      ? CrossAxisAlignment.end
+                      : CrossAxisAlignment.start,
               children: [
                 Text(
                   message.isUser ? 'Me' : 'Soilsense',
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Container(
-                  constraints: BoxConstraints(
-                    maxWidth: Get.width * 0.75,
+                  constraints: BoxConstraints(maxWidth: Get.width * 0.75),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color:
+                        message.isUser
+                            ? AppColors.primary500
+                            : AppColors.backgroundLight,
+                    borderRadius: BorderRadius.only(
+                      topLeft: const Radius.circular(16),
+                      topRight: const Radius.circular(16),
+                      bottomLeft:
+                          message.isUser
+                              ? const Radius.circular(16)
+                              : const Radius.circular(4),
+                      bottomRight:
+                          message.isUser
+                              ? const Radius.circular(4)
+                              : const Radius.circular(16),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
                   child: Column(
-                    crossAxisAlignment: message.isUser 
-                        ? CrossAxisAlignment.end 
-                        : CrossAxisAlignment.start,
+                    crossAxisAlignment:
+                        message.isUser
+                            ? CrossAxisAlignment.end
+                            : CrossAxisAlignment.start,
                     children: [
                       if (message.imageUri != null) ...[
                         ClipRRect(
@@ -231,7 +336,7 @@ class ChatScreen extends StatelessWidget {
                           message.message,
                           style: const TextStyle(
                             fontSize: 14,
-                            color: AppColors.textPrimary,
+                            color: Colors.white,
                             height: 1.4,
                           ),
                         )
@@ -301,18 +406,20 @@ class ChatScreen extends StatelessWidget {
             Container(
               margin: const EdgeInsets.only(left: 12),
               child: CircleAvatar(
-                radius: 20,
+                radius: 22,
                 backgroundColor: AppColors.primary100,
-                backgroundImage: authController.profileImage != null
-                    ? NetworkImage(authController.profileImage!)
-                    : null,
-                child: authController.profileImage == null
-                    ? Image.asset(
-                        'assets/icons/user.png',
-                        width: 24,
-                        height: 24,
-                      )
-                    : null,
+                backgroundImage:
+                    authController.profileImage != null
+                        ? NetworkImage(authController.profileImage!)
+                        : null,
+                child:
+                    authController.profileImage == null
+                        ? Image.asset(
+                          'assets/icons/user.png',
+                          width: 26,
+                          height: 26,
+                        )
+                        : null,
               ),
             ),
           ],
@@ -341,12 +448,15 @@ class ChatScreen extends StatelessWidget {
                         top: 17,
                         left: 22,
                         child: Transform.rotate(
-                          angle: controller.ellipse1Animation.value * 2 * 3.14159,
+                          angle:
+                              controller.ellipse1Animation.value * 2 * 3.14159,
                           child: Container(
                             width: 97,
                             height: 105,
                             decoration: BoxDecoration(
-                              color: AppColors.primary500.withValues(alpha: 0.6),
+                              color: AppColors.primary500.withValues(
+                                alpha: 0.6,
+                              ),
                               borderRadius: BorderRadius.circular(50),
                             ),
                           ),
@@ -361,12 +471,15 @@ class ChatScreen extends StatelessWidget {
                         top: 0,
                         left: 92,
                         child: Transform.rotate(
-                          angle: -controller.ellipse2Animation.value * 2 * 3.14159,
+                          angle:
+                              -controller.ellipse2Animation.value * 2 * 3.14159,
                           child: Container(
                             width: 98,
                             height: 105,
                             decoration: BoxDecoration(
-                              color: AppColors.primary500.withValues(alpha: 0.4),
+                              color: AppColors.primary500.withValues(
+                                alpha: 0.4,
+                              ),
                               borderRadius: BorderRadius.circular(50),
                             ),
                           ),
@@ -381,12 +494,15 @@ class ChatScreen extends StatelessWidget {
                         top: 17,
                         left: 24,
                         child: Transform.rotate(
-                          angle: controller.ellipse3Animation.value * 2 * 3.14159,
+                          angle:
+                              controller.ellipse3Animation.value * 2 * 3.14159,
                           child: Container(
                             width: 98,
                             height: 105,
                             decoration: BoxDecoration(
-                              color: AppColors.primary500.withValues(alpha: 0.3),
+                              color: AppColors.primary500.withValues(
+                                alpha: 0.3,
+                              ),
                               borderRadius: BorderRadius.circular(50),
                             ),
                           ),
@@ -414,11 +530,19 @@ class ChatScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Recording... Tap to stop',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 18,
                 color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+                shadows: [
+                  Shadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 2,
+                    offset: Offset(0, 1),
+                  ),
+                ],
               ),
               textAlign: TextAlign.center,
             ),
@@ -431,11 +555,18 @@ class ChatScreen extends StatelessWidget {
   Widget _buildInputSection(ChatController controller) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Color(0xFFE5E5E5), width: 1),
-        ),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundLight,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Color(0xFFE5E5E5), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -443,10 +574,15 @@ class ChatScreen extends StatelessWidget {
             onTap: () => controller.captureImage(),
             child: Container(
               margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.primary100,
+                shape: BoxShape.circle,
+              ),
               child: const Icon(
                 Icons.camera_alt,
                 color: Color(0xFF435862),
-                size: 24,
+                size: 20,
               ),
             ),
           ),
@@ -454,74 +590,89 @@ class ChatScreen extends StatelessWidget {
             onTap: () => controller.selectImage(),
             child: Container(
               margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.primary100,
+                shape: BoxShape.circle,
+              ),
               child: const Icon(
                 Icons.image,
                 color: Color(0xFF435862),
-                size: 24,
+                size: 20,
               ),
             ),
           ),
           Expanded(
-            child: Obx(() => TextField(
-              onChanged: (value) => controller.inputText.value = value,
-              onSubmitted: (_) => controller.sendMessage(),
-              enabled: !controller.isLoading.value,
-              decoration: InputDecoration(
-                hintText: 'Write Here',
-                hintStyle: const TextStyle(color: Color(0xFF999999)),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(color: Color(0xFFE5E5E5)),
+            child: Obx(
+              () => TextField(
+                onChanged: (value) => controller.inputText.value = value,
+                onSubmitted: (_) => controller.sendMessage(),
+                enabled: !controller.isLoading.value,
+                decoration: InputDecoration(
+                  hintText: 'Write Here',
+                  hintStyle: const TextStyle(color: Color(0xFF999999)),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  fillColor: Colors.transparent,
+                  filled: true,
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(color: Color(0xFFE5E5E5)),
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: AppColors.textPrimary,
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(color: AppColors.primary500),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                fillColor: Colors.white,
-                filled: true,
               ),
-              style: const TextStyle(
-                fontSize: 16,
-                color: AppColors.textPrimary,
-              ),
-            )),
+            ),
           ),
           const SizedBox(width: 12),
-          Obx(() => GestureDetector(
-            onTap: controller.isLoading.value ? null : () => controller.handleVoicePress(),
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: const BoxDecoration(
-                color: AppColors.primary500,
-                shape: BoxShape.circle,
-              ),
-              child: controller.isLoading.value
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : Icon(
-                      controller.inputText.value.trim().isNotEmpty
-                          ? Icons.send
-                          : Icons.mic,
-                      color: Colors.white,
-                      size: 20,
+          Obx(
+            () => GestureDetector(
+              onTap:
+                  controller.isLoading.value
+                      ? null
+                      : () => controller.handleVoicePress(),
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.primary500, AppColors.primary600],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary500.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
                     ),
+                  ],
+                ),
+                child:
+                    controller.isLoading.value
+                        ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                        : Icon(
+                          controller.inputText.value.trim().isNotEmpty
+                              ? Icons.send
+                              : Icons.mic,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+              ),
             ),
-          )),
+          ),
         ],
       ),
     );
