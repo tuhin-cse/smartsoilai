@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smartsoilai/widgets/settings_tile.dart';
-import '../controllers/more_controller.dart';
-import '../widgets/settings_tile.dart';
-import '../services/user_service.dart';
+import '../../controllers/more_controller.dart';
+import '../../widgets/settings_tile.dart';
+import '../../services/user_service.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});

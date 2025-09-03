@@ -6,11 +6,13 @@ import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/signup_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
-import '../screens/home_screen.dart';
-import '../screens/chat_screen.dart';
-import '../screens/reports_screen.dart';
-import '../screens/main_navigation_screen.dart';
+import '../screens/home/home_screen.dart';
+import '../screens/home/chat_screen.dart';
+import '../screens/home/reports_screen.dart';
+import '../screens/home/main_navigation_screen.dart';
 import '../screens/placeholder_screens.dart';
+import '../screens/inner/fertilizer_calculator_screen.dart';
+import '../screens/inner/report_detail_screen.dart';
 
 class AppRoutes {
   // Route names

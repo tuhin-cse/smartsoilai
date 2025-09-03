@@ -72,20 +72,6 @@ class DiseaseAnalysisScreen extends StatelessWidget {
   }
 }
 
-class ReportDetailScreen extends StatelessWidget {
-  const ReportDetailScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Report Detail')),
-      body: const Center(
-        child: Text('Report Detail Screen'),
-      ),
-    );
-  }
-}
-
 class ShopScreen extends StatelessWidget {
   const ShopScreen({super.key});
 
@@ -114,19 +100,7 @@ class MoreScreen extends StatelessWidget {
   }
 }
 
-class FertilizerCalculatorScreen extends StatelessWidget {
-  const FertilizerCalculatorScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Fertilizer Calculator')),
-      body: const Center(
-        child: Text('Fertilizer Calculator Screen'),
-      ),
-    );
-  }
-}
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});

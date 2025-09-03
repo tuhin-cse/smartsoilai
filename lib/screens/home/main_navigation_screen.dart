@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:async';
-import '../constants/app_colors.dart';
+import '../../constants/app_colors.dart';
 import 'home_screen.dart';
 import 'chat_screen.dart';
 import 'reports_screen.dart';
 import 'more_screen.dart';
-import 'placeholder_screens.dart' show ShopScreen;
+import '../placeholder_screens.dart' show ShopScreen;
 
 class MainNavigationController extends GetxController {
   final _selectedIndex = 0.obs;
@@ -38,7 +38,6 @@ class MainNavigationController extends GetxController {
     const HomeScreen(),
     const ChatScreen(),
     const ReportsScreen(),
-    const ShopScreen(),
     const MoreScreen(),
   ];
 }
@@ -115,15 +114,6 @@ class MainNavigationScreen extends StatelessWidget {
                       label: 'Reports',
                       isActive: controller.selectedIndex == 2,
                       onTap: () => controller.changeIndex(2),
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildNavItem(
-                      icon: Icons.shopping_cart_outlined,
-                      activeIcon: Icons.shopping_cart,
-                      label: 'Shop',
-                      isActive: controller.selectedIndex == 3,
-                      onTap: () => controller.changeIndex(3),
                     ),
                   ),
                   Expanded(

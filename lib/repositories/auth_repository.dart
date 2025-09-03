@@ -22,6 +22,10 @@ class AuthRepository {
         await _saveUser(authResponse.user);
         return authResponse;
       } else {
+
+        print("Response data: ${response.data}");
+
+
         throw ApiException(
           message: 'Login failed',
           statusCode: response.statusCode,

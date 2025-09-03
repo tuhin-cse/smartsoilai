@@ -3,9 +3,9 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
-import '../constants/app_colors.dart';
-import '../services/user_service.dart';
-import '../services/weather_service.dart';
+import '../../constants/app_colors.dart';
+import '../../services/user_service.dart';
+import '../../services/weather_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

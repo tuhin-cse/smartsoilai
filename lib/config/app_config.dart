@@ -5,8 +5,8 @@ class AppConfig {
       // 'https://soilai.ezystore.xyz'; // Replace with your actual API URL
 
   // Timeout settings
-  static const int connectTimeoutMs = 15000;
-  static const int receiveTimeoutMs = 15000;
+  static const int connectTimeoutMs = 30000;
+  static const int receiveTimeoutMs = 30000;
 
   // Storage keys
   static const String accessTokenKey = 'accessToken';
