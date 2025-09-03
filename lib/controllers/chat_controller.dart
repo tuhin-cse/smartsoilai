@@ -35,14 +35,14 @@ class ChatController extends GetxController with GetTickerProviderStateMixin {
   final ChatRepository _chatRepository = ChatRepository();
   final ImagePicker _imagePicker = ImagePicker();
   final FlutterSoundRecorder _audioRecorder = FlutterSoundRecorder();
-  
+
   // Observable variables
   final RxList<ChatMessage> messages = <ChatMessage>[].obs;
   final RxString inputText = ''.obs;
   final RxBool isLoading = false.obs;
   final RxBool isRecording = false.obs;
   final RxString currentConversationId = ''.obs;
-  
+
   // Animation controllers
   late AnimationController ellipse1Controller;
   late AnimationController ellipse2Controller;
@@ -108,10 +108,14 @@ class ChatController extends GetxController with GetTickerProviderStateMixin {
 
   /// Get conversation history for API calls
   List<ConversationHistoryDto> getConversationHistory() {
-    return messages.map((msg) => ConversationHistoryDto(
-      role: msg.isUser ? 'user' : 'assistant',
-      content: msg.message,
-    )).toList();
+    return messages
+        .map(
+          (msg) => ConversationHistoryDto(
+            role: msg.isUser ? 'user' : 'assistant',
+            content: msg.message,
+          ),
+        )
+        .toList();
   }
 
   /// Send text message to AI
@@ -133,15 +137,28 @@ class ChatController extends GetxController with GetTickerProviderStateMixin {
     isLoading.value = true;
 
     try {
+      // Show processing feedback
+      Get.snackbar(
+        'Sending Message',
+        'Getting AI response...',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.blue.shade100,
+        colorText: Colors.blue.shade800,
+        duration: const Duration(seconds: 1),
+      );
+
       final chatMessageDto = ChatMessageDto(
-        conversationId: currentConversationId.value.isEmpty ? null : currentConversationId.value,
+        conversationId:
+            currentConversationId.value.isEmpty
+                ? null
+                : currentConversationId.value,
         message: text,
         messageType: ChatMessageType.text,
         conversationHistory: getConversationHistory(),
       );
 
       final response = await _chatRepository.sendMessage(chatMessageDto);
-      
+
       final aiMessage = ChatMessage(
         id: (DateTime.now().millisecondsSinceEpoch + 1).toString(),
         message: response.message,
@@ -165,12 +182,7 @@ class ChatController extends GetxController with GetTickerProviderStateMixin {
   /// Handle image capture from camera
   Future<void> captureImage() async {
     try {
-      final status = await Permission.camera.request();
-      if (!status.isGranted) {
-        Get.snackbar('Permission Required', 'Please grant camera permissions to use this feature.');
-        return;
-      }
-
+      // Directly try to open camera - system will handle permissions automatically
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.camera,
         maxWidth: 1024,
@@ -182,19 +194,26 @@ class ChatController extends GetxController with GetTickerProviderStateMixin {
         await _processImage(image);
       }
     } catch (e) {
-      _handleError('Failed to capture image. Please try again.');
+      // If camera access fails, check if it's a permission issue
+      final status = await Permission.camera.status;
+      if (status.isPermanentlyDenied) {
+        await _showPermissionDialog(
+          'Camera Permission Required',
+          'Camera access is needed to take photos for soil analysis. Please enable camera permission in app settings.',
+          Permission.camera,
+        );
+      } else {
+        _handleError(
+          'Failed to access camera. Please check your camera settings and try again.',
+        );
+      }
     }
   }
 
   /// Handle image selection from gallery
   Future<void> selectImage() async {
     try {
-      final status = await Permission.photos.request();
-      if (!status.isGranted) {
-        Get.snackbar('Permission Required', 'Please grant photo library permissions to use this feature.');
-        return;
-      }
-
+      // Directly try to open gallery - system will handle permissions automatically
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1024,
@@ -206,19 +225,75 @@ class ChatController extends GetxController with GetTickerProviderStateMixin {
         await _processImage(image);
       }
     } catch (e) {
-      _handleError('Failed to select image. Please try again.');
+      // If gallery access fails, check if it's a permission issue
+      PermissionStatus status;
+      if (Platform.isIOS) {
+        status = await Permission.photos.status;
+      } else {
+        status = await Permission.storage.status;
+      }
+
+      if (status.isPermanentlyDenied) {
+        await _showPermissionDialog(
+          'Gallery Permission Required',
+          'Photo library access is needed to select images for soil analysis. Please enable gallery permission in app settings.',
+          Platform.isIOS ? Permission.photos : Permission.storage,
+        );
+      } else {
+        _handleError(
+          'Failed to access photo library. Please check your gallery settings and try again.',
+        );
+      }
+    }
+  }
+
+  /// Show permission dialog with option to open app settings
+  Future<void> _showPermissionDialog(
+    String title,
+    String message,
+    Permission permission,
+  ) async {
+    final result = await Get.dialog<bool>(
+      AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Get.back(result: true),
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      await openAppSettings();
     }
   }
 
   /// Process and send image to AI
   Future<void> _processImage(XFile image) async {
     try {
+      // Show processing feedback
+      Get.snackbar(
+        'Processing Image',
+        'Analyzing your soil sample...',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.blue.shade100,
+        colorText: Colors.blue.shade800,
+        duration: const Duration(seconds: 2),
+      );
+
       final bytes = await image.readAsBytes();
       final base64Image = base64Encode(bytes);
 
       final userMessage = ChatMessage(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
-        message: 'Image uploaded for analysis',
+        message: '📷 Image uploaded for soil analysis',
         isUser: true,
         timestamp: DateTime.now(),
         messageType: 'image_analysis',
@@ -230,14 +305,17 @@ class ChatController extends GetxController with GetTickerProviderStateMixin {
       isLoading.value = true;
 
       final chatMessageDto = ChatMessageDto(
-        conversationId: currentConversationId.value.isEmpty ? null : currentConversationId.value,
+        conversationId:
+            currentConversationId.value.isEmpty
+                ? null
+                : currentConversationId.value,
         imageBase64: base64Image,
         messageType: ChatMessageType.image,
         conversationHistory: getConversationHistory(),
       );
 
       final response = await _chatRepository.sendMessage(chatMessageDto);
-      
+
       final aiMessage = ChatMessage(
         id: (DateTime.now().millisecondsSinceEpoch + 1).toString(),
         message: response.message,
@@ -249,10 +327,22 @@ class ChatController extends GetxController with GetTickerProviderStateMixin {
 
       messages.add(aiMessage);
       currentConversationId.value = response.conversationId;
+
+      // Show success feedback
+      Get.snackbar(
+        'Analysis Complete',
+        'Soil analysis completed successfully!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green.shade100,
+        colorText: Colors.green.shade800,
+        duration: const Duration(seconds: 2),
+      );
     } on ApiException catch (e) {
       _handleError('Failed to analyze image: ${e.message}');
     } catch (e) {
-      _handleError('Failed to analyze image. Please try again.');
+      _handleError(
+        'Failed to analyze image. Please check your internet connection and try again.',
+      );
     } finally {
       isLoading.value = false;
     }
@@ -261,12 +351,6 @@ class ChatController extends GetxController with GetTickerProviderStateMixin {
   /// Start voice recording
   Future<void> startRecording() async {
     try {
-      final status = await Permission.microphone.request();
-      if (!status.isGranted) {
-        Get.snackbar('Permission Required', 'Please grant microphone permissions to use this feature.');
-        return;
-      }
-
       // Get temporary directory for recording
       final tempDir = await getTemporaryDirectory();
       final audioPath = '${tempDir.path}/audio_message.aac';
@@ -275,11 +359,33 @@ class ChatController extends GetxController with GetTickerProviderStateMixin {
         toFile: audioPath,
         codec: Codec.aacADTS,
       );
-      
+
       isRecording.value = true;
       _startRecordingAnimations();
+
+      // Show recording feedback
+      Get.snackbar(
+        'Recording Started',
+        'Tap the microphone button again to stop recording',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.blue.shade100,
+        colorText: Colors.blue.shade800,
+        duration: const Duration(seconds: 2),
+      );
     } catch (e) {
-      _handleError('Failed to start recording. Please try again.');
+      // If recording fails, check if it's a permission issue
+      final status = await Permission.microphone.status;
+      if (status.isPermanentlyDenied) {
+        await _showPermissionDialog(
+          'Microphone Permission Required',
+          'Microphone access is needed to record voice messages. Please enable microphone permission in app settings.',
+          Permission.microphone,
+        );
+      } else {
+        _handleError(
+          'Failed to start recording. Please check your microphone settings and try again.',
+        );
+      }
     }
   }
 
@@ -298,7 +404,7 @@ class ChatController extends GetxController with GetTickerProviderStateMixin {
 
           final userMessage = ChatMessage(
             id: DateTime.now().millisecondsSinceEpoch.toString(),
-            message: 'Voice message recorded',
+            message: '🎤 Voice message recorded',
             isUser: true,
             timestamp: DateTime.now(),
             messageType: 'voice_response',
@@ -308,15 +414,28 @@ class ChatController extends GetxController with GetTickerProviderStateMixin {
           messages.add(userMessage);
           isLoading.value = true;
 
+          // Show processing feedback
+          Get.snackbar(
+            'Processing Voice',
+            'Transcribing and analyzing your voice message...',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.blue.shade100,
+            colorText: Colors.blue.shade800,
+            duration: const Duration(seconds: 2),
+          );
+
           final chatMessageDto = ChatMessageDto(
-            conversationId: currentConversationId.value.isEmpty ? null : currentConversationId.value,
+            conversationId:
+                currentConversationId.value.isEmpty
+                    ? null
+                    : currentConversationId.value,
             audioBase64: base64Audio,
             messageType: ChatMessageType.voice,
             conversationHistory: getConversationHistory(),
           );
 
           final response = await _chatRepository.sendMessage(chatMessageDto);
-          
+
           final aiMessage = ChatMessage(
             id: (DateTime.now().millisecondsSinceEpoch + 1).toString(),
             message: response.message,
@@ -328,6 +447,16 @@ class ChatController extends GetxController with GetTickerProviderStateMixin {
 
           messages.add(aiMessage);
           currentConversationId.value = response.conversationId;
+
+          // Show success feedback
+          Get.snackbar(
+            'Voice Processed',
+            'Voice message processed successfully!',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green.shade100,
+            colorText: Colors.green.shade800,
+            duration: const Duration(seconds: 2),
+          );
 
           // Clean up audio file
           await audioFile.delete();
@@ -357,8 +486,13 @@ class ChatController extends GetxController with GetTickerProviderStateMixin {
       'Error',
       message,
       snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
+      backgroundColor: Colors.red.shade100,
+      colorText: Colors.red.shade800,
+      duration: const Duration(seconds: 3),
+      mainButton: TextButton(
+        onPressed: () => Get.back(),
+        child: const Text('OK', style: TextStyle(color: Colors.red)),
+      ),
     );
   }
 

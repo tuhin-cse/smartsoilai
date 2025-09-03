@@ -165,6 +165,14 @@ class ChatScreen extends StatelessWidget {
               ).then((value) {
                 if (value == 'clear_chat') {
                   controller.messages.clear();
+                  Get.snackbar(
+                    'Chat Cleared',
+                    'All messages have been cleared',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.blue.shade100,
+                    colorText: Colors.blue.shade800,
+                    duration: const Duration(seconds: 2),
+                  );
                 } else if (value == 'settings') {
                   Get.toNamed('/settings');
                 }
