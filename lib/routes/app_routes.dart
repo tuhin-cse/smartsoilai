@@ -13,6 +13,7 @@ import '../screens/home/main_navigation_screen.dart';
 import '../screens/placeholder_screens.dart';
 import '../screens/inner/fertilizer_calculator_screen.dart';
 import '../screens/inner/report_detail_screen.dart';
+import '../screens/settings_screen.dart';
 
 class AppRoutes {
   // Route names
@@ -37,13 +38,11 @@ class AppRoutes {
   static const String fertilizerCalculator = '/calculator/fertilizer';
   static const String profile = '/more/profile';
   static const String privacyPolicy = '/more/privacy-policy';
+  static const String settings = '/settings';
 
   // Routes list
   static List<GetPage> routes = [
-    GetPage(
-      name: splash,
-      page: () => const SplashScreen(),
-    ),
+    GetPage(name: splash, page: () => const SplashScreen()),
     GetPage(
       name: onboarding,
       page: () => const OnboardingScreen(),
@@ -142,6 +141,11 @@ class AppRoutes {
     GetPage(
       name: privacyPolicy,
       page: () => const PrivacyPolicyScreen(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: settings,
+      page: () => const SettingsScreen(),
       transition: Transition.rightToLeft,
     ),
   ];

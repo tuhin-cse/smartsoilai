@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:lottie/lottie.dart';
 import 'dart:io';
 import '../../constants/app_colors.dart';
 import '../../controllers/chat_controller.dart';
 import '../../controllers/auth_controller.dart';
+import '../../services/user_service.dart';
 
 class ChatScreen extends StatelessWidget {
   const ChatScreen({super.key});
@@ -13,6 +15,15 @@ class ChatScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(ChatController());
     final authController = Get.find<AuthController>();
+    final userService = UserService.to;
+    final textController = TextEditingController();
+
+    // Listen to inputText changes and clear controller when needed
+    ever(controller.inputText, (text) {
+      if (text.isEmpty && textController.text.isNotEmpty) {
+        textController.clear();
+      }
+    });
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -28,7 +39,7 @@ class ChatScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              _buildHeader(),
+              _buildHeader(context, controller),
               Expanded(
                 child: Obx(() {
                   if (controller.isRecording.value) {
@@ -36,13 +47,17 @@ class ChatScreen extends StatelessWidget {
                   } else if (controller.messages.isEmpty) {
                     return _buildEmptyState();
                   } else {
-                    return _buildMessagesList(controller, authController);
+                    return _buildMessagesList(
+                      controller,
+                      authController,
+                      userService,
+                    );
                   }
                 }),
               ),
               Obx(() {
                 if (!controller.isRecording.value) {
-                  return _buildInputSection(controller);
+                  return _buildInputSection(controller, textController);
                 }
                 return const SizedBox.shrink();
               }),
@@ -53,19 +68,20 @@ class ChatScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context, ChatController controller) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       decoration: BoxDecoration(
-        color: AppColors.backgroundLight,
-        border: const Border(
-          bottom: BorderSide(color: Color(0xFFE5E5E5), width: 1),
+        gradient: LinearGradient(
+          colors: [AppColors.primary500, AppColors.primary600],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: AppColors.primary500.withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -74,45 +90,100 @@ class ChatScreen extends StatelessWidget {
           GestureDetector(
             onTap: () => Get.back(),
             child: Container(
-              width: 38,
-              height: 38,
+              width: 42,
+              height: 42,
               decoration: BoxDecoration(
-                color: AppColors.primary100,
+                color: Colors.white.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  width: 1,
+                ),
               ),
-              child: const Icon(
-                Icons.arrow_back_ios_new,
-                color: Color(0xFF435862),
-                size: 20,
+              child: Image.asset(
+                'assets/icons/ai_avatar.png',
+                width: 24,
+                height: 24,
               ),
             ),
           ),
+          const SizedBox(width: 16),
           Expanded(
-            child: Text(
-              'Soil AI',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-                shadows: [
-                  Shadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 2,
-                    offset: Offset(0, 1),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Soil AI Assistant',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Colors.greenAccent,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'Online',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 38),
+          GestureDetector(
+            onTap: () {
+              showMenu(
+                context: context,
+                position: RelativeRect.fromLTRB(100, 100, 0, 0),
+                items: [
+                  PopupMenuItem(
+                    value: 'clear_chat',
+                    child: Row(
+                      children: [
+                        Icon(Icons.clear, color: AppColors.primary500),
+                        const SizedBox(width: 8),
+                        const Text('Clear Chat'),
+                      ],
+                    ),
+                  ),
+                ],
+              ).then((value) {
+                if (value == 'clear_chat') {
+                  controller.messages.clear();
+                } else if (value == 'settings') {
+                  Get.toNamed('/settings');
+                }
+              });
+            },
+            child: Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: const Icon(Icons.more_vert, color: Colors.white, size: 20),
+            ),
+          ),
         ],
       ),
     );
@@ -126,23 +197,28 @@ class ChatScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.asset(
-                  'assets/images/logo.png',
-                  width: 120,
-                  height: 120,
-                ),
+              width: 150,
+              height: 150,
+              child: Lottie.network(
+                'https://assets3.lottiefiles.com/packages/lf20_x62chJ.json',
+                fit: BoxFit.contain,
+                animate: true,
+                repeat: true,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 150,
+                    height: 150,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary100,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Icon(
+                      Icons.grass,
+                      color: AppColors.primary500,
+                      size: 80,
+                    ),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 32),
@@ -188,6 +264,7 @@ class ChatScreen extends StatelessWidget {
   Widget _buildMessagesList(
     ChatController controller,
     AuthController authController,
+    UserService userService,
   ) {
     return Column(
       children: [
@@ -197,7 +274,7 @@ class ChatScreen extends StatelessWidget {
             itemCount: controller.messages.length,
             itemBuilder: (context, index) {
               final message = controller.messages[index];
-              return _buildMessageItem(message, authController);
+              return _buildMessageItem(message, authController, userService);
             },
           ),
         ),
@@ -249,15 +326,19 @@ class ChatScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMessageItem(ChatMessage message, AuthController authController) {
+  Widget _buildMessageItem(
+    ChatMessage message,
+    AuthController authController,
+    UserService userService,
+  ) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!message.isUser) ...[
             Container(
-              margin: const EdgeInsets.only(right: 12),
+              margin: const EdgeInsets.only(right: 12, bottom: 4),
               child: CircleAvatar(
                 radius: 22,
                 backgroundColor: AppColors.primary100,
@@ -404,22 +485,27 @@ class ChatScreen extends StatelessWidget {
           ),
           if (message.isUser) ...[
             Container(
-              margin: const EdgeInsets.only(left: 12),
-              child: CircleAvatar(
-                radius: 22,
-                backgroundColor: AppColors.primary100,
-                backgroundImage:
-                    authController.profileImage != null
-                        ? NetworkImage(authController.profileImage!)
-                        : null,
-                child:
-                    authController.profileImage == null
-                        ? Image.asset(
-                          'assets/icons/user.png',
-                          width: 26,
-                          height: 26,
-                        )
-                        : null,
+              margin: const EdgeInsets.only(left: 12, bottom: 4),
+              child: Obx(
+                () => CircleAvatar(
+                  radius: 22,
+                  backgroundColor: AppColors.primary100,
+                  backgroundImage:
+                      userService.profileImage.isNotEmpty
+                          ? NetworkImage(userService.profileImage)
+                          : (authController.profileImage != null
+                              ? NetworkImage(authController.profileImage!)
+                              : null),
+                  child:
+                      (userService.profileImage.isEmpty &&
+                              authController.profileImage == null)
+                          ? Image.asset(
+                            'assets/icons/user.png',
+                            width: 26,
+                            height: 26,
+                          )
+                          : null,
+                ),
               ),
             ),
           ],
@@ -552,10 +638,13 @@ class ChatScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInputSection(ChatController controller) {
+  Widget _buildInputSection(
+    ChatController controller,
+    TextEditingController textController,
+  ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.backgroundLight,
         borderRadius: BorderRadius.circular(24),
@@ -569,12 +658,14 @@ class ChatScreen extends StatelessWidget {
         ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          // Camera and Gallery icons
           GestureDetector(
             onTap: () => controller.captureImage(),
             child: Container(
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.all(8),
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: AppColors.primary100,
                 shape: BoxShape.circle,
@@ -590,7 +681,7 @@ class ChatScreen extends StatelessWidget {
             onTap: () => controller.selectImage(),
             child: Container(
               margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: AppColors.primary100,
                 shape: BoxShape.circle,
@@ -602,21 +693,43 @@ class ChatScreen extends StatelessWidget {
               ),
             ),
           ),
+          // Text input
           Expanded(
             child: Obx(
               () => TextField(
+                controller: textController,
                 onChanged: (value) => controller.inputText.value = value,
-                onSubmitted: (_) => controller.sendMessage(),
+                onSubmitted: (value) {
+                  if (value.trim().isNotEmpty) {
+                    controller.sendMessage();
+                    textController.clear();
+                    controller.inputText.value = '';
+                  }
+                },
                 enabled: !controller.isLoading.value,
+                minLines: 1,
+                maxLines: 3,
                 decoration: InputDecoration(
-                  hintText: 'Write Here',
+                  hintText: 'Type your message...',
                   hintStyle: const TextStyle(color: Color(0xFF999999)),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide(color: Colors.transparent),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide(color: Colors.transparent),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide(
+                      color: AppColors.primary500,
+                      width: 1,
+                    ),
+                  ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
-                    vertical: 12,
+                    vertical: 6,
                   ),
                   fillColor: Colors.transparent,
                   filled: true,
@@ -629,12 +742,21 @@ class ChatScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
+          // Send/Voice button
           Obx(
             () => GestureDetector(
               onTap:
                   controller.isLoading.value
                       ? null
-                      : () => controller.handleVoicePress(),
+                      : () {
+                        if (controller.inputText.value.trim().isNotEmpty) {
+                          controller.sendMessage();
+                          textController.clear();
+                          controller.inputText.value = '';
+                        } else {
+                          controller.handleVoicePress();
+                        }
+                      },
               child: Container(
                 width: 48,
                 height: 48,
