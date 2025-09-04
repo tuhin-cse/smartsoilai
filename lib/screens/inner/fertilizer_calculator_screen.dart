@@ -1430,7 +1430,7 @@ class FertilizerCalculatorScreen extends StatelessWidget {
     final buttonSize = isSmallScreen ? ButtonSize.medium : ButtonSize.large;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       child: Obx(
         () => AnimatedContainer(
           duration: const Duration(milliseconds: 300),
