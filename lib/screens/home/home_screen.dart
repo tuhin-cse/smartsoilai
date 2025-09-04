@@ -708,7 +708,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                           .satelliteImageUrl
                                                           .value,
                                                     )
-                                                    :  Image.asset(
+                                                    : Image.asset(
                                                           'assets/images/field.png',
                                                         )
                                                         as ImageProvider,
@@ -1045,6 +1045,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        height: 108, // Fixed height for consistent sizing
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -1058,10 +1059,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         child: Column(
+          mainAxisAlignment:
+              MainAxisAlignment.center, // Center content vertically
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: 32,
+              height: 32,
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: AppColors.primary100,
@@ -1070,14 +1073,19 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Image.asset(iconPath, width: 24, height: 24),
             ),
             const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF1F1F1F),
+            Expanded(
+              // Allow text to expand and center properly
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF1F1F1F),
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2, // Allow up to 2 lines
+                overflow: TextOverflow.ellipsis, // Handle overflow
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),

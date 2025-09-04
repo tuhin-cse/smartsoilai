@@ -13,6 +13,7 @@ import '../screens/home/main_navigation_screen.dart';
 import '../screens/placeholder_screens.dart';
 import '../screens/inner/fertilizer_calculator_screen.dart';
 import '../screens/inner/report_detail_screen.dart';
+import '../screens/inner/soil_meter_screen.dart';
 import '../screens/settings_screen.dart';
 
 class AppRoutes {
@@ -39,6 +40,7 @@ class AppRoutes {
   static const String profile = '/more/profile';
   static const String privacyPolicy = '/more/privacy-policy';
   static const String settings = '/settings';
+  static const String soilMeter = '/soil-meter';
 
   // Routes list
   static List<GetPage> routes = [
@@ -91,6 +93,11 @@ class AppRoutes {
     GetPage(
       name: mainNavigation,
       page: () => const MainNavigationScreen(),
+      transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: soilMeter,
+      page: () => const SoilMeterScreen(),
       transition: Transition.fadeIn,
     ),
     GetPage(

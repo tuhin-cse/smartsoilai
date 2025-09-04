@@ -526,71 +526,62 @@ class FertilizerCalculatorScreen extends StatelessWidget {
             ? 45.0
             : 40.0;
 
-    return Container(
-      padding: EdgeInsets.all(padding),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.primary100, AppColors.primary50],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(20),
-          bottomRight: Radius.circular(20),
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              GestureDetector(
-                onTap: controller.goBack,
-                child: Container(
-                  width: stepSize - 2,
-                  height: stepSize - 2,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(stepSize / 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+    return Column(
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: EdgeInsets.only(left: 20, right: 20),
+              decoration: const BoxDecoration(color: Color(0xFFFAFAF8)),
+              child: Row(
+                children: [
+                  // Back button
+                  GestureDetector(
+                    onTap: () {
+                      Get.back();
+                    },
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFE3F8CF),
+                        shape: BoxShape.circle,
                       ),
-                    ],
+                      child: const Icon(
+                        Icons.chevron_left,
+                        color: Color(0xFF435C5C),
+                        size: 20,
+                      ),
+                    ),
                   ),
-                  child: Icon(
-                    Icons.arrow_back_ios_new,
-                    color: AppColors.primary600,
-                    size: isSmallScreen ? 16 : 20,
-                  ),
-                ),
+                ],
               ),
-              Expanded(
-                child: Text(
-                  'Fertilizer Calculator',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: titleSize,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ),
-              SizedBox(width: stepSize - 2),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Step Indicator
-          Obx(
-            () => _buildStepIndicator(
-              controller.currentStep.value,
-              isSmallScreen,
-              isLargeScreen,
             ),
-          ),
-        ],
-      ),
+
+            Expanded(
+              child: Text(
+                'Fertilizer Calculator',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: titleSize,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+            SizedBox(width: stepSize - 2),
+          ],
+        ),
+        const SizedBox(height: 16),
+        // Step Indicator
+        // Obx(
+        //   () => _buildStepIndicator(
+        //     controller.currentStep.value,
+        //     isSmallScreen,
+        //     isLargeScreen,
+        //   ),
+        // ),
+      ],
     );
   }
 
