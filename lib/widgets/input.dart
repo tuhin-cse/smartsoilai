@@ -82,6 +82,7 @@ class _CustomFormInputState extends State<CustomFormInput> {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         // Label - only show if not empty
         if (widget.label.isNotEmpty) ...[

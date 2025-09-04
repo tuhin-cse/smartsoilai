@@ -36,7 +36,7 @@ class MainNavigationController extends GetxController {
 
   final List<Widget> screens = [
     const HomeScreen(),
-    const ChatScreen(),
+    SizedBox(),
     const ReportsScreen(),
     const MoreScreen(),
   ];
@@ -104,7 +104,7 @@ class MainNavigationScreen extends StatelessWidget {
                       activeIcon: Icons.chat_bubble,
                       label: 'Chat',
                       isActive: controller.selectedIndex == 1,
-                      onTap: () => controller.changeIndex(1),
+                      onTap: () => Get.to(() => const ChatScreen()),
                     ),
                   ),
                   Expanded(

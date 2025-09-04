@@ -7,6 +7,7 @@ import '../../constants/app_colors.dart';
 import '../../controllers/chat_controller.dart';
 import '../../controllers/auth_controller.dart';
 import '../../services/user_service.dart';
+import 'main_navigation_screen.dart';
 
 class ChatScreen extends StatelessWidget {
   const ChatScreen({super.key});
@@ -73,9 +74,24 @@ class ChatScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary500, AppColors.primary600],
+          colors: [
+            AppColors.primary400,
+            AppColors.primary500,
+            AppColors.primary600,
+            AppColors.primary700,
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(20),
+          bottomRight: Radius.circular(20),
+        ),
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.white.withValues(alpha: 0.1),
+            width: 1,
+          ),
         ),
         boxShadow: [
           BoxShadow(
@@ -88,26 +104,45 @@ class ChatScreen extends StatelessWidget {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Get.back(),
+            onTap: () {
+              Get.find<MainNavigationController>().changeIndex(0);
+              Get.back();
+            },
             child: Container(
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: Colors.white.withOpacity(0.2),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: Colors.white.withOpacity(0.3),
                   width: 1,
                 ),
               ),
-              child: Image.asset(
-                'assets/icons/ai_avatar.png',
-                width: 24,
-                height: 24,
+              child: Center(
+                child: Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
             ),
           ),
           const SizedBox(width: 16),
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 1.0, end: 1.05),
+            duration: const Duration(seconds: 2),
+            curve: Curves.easeInOut,
+            builder: (context, scale, child) {
+              return Transform.scale(scale: scale, child: child);
+            },
+            child: Image.asset(
+              'assets/icons/ai_avatar.png',
+              width: 42,
+              height: 42,
+            ),
+          ),
+          const SizedBox(width: 5),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,17 +153,45 @@ class ChatScreen extends StatelessWidget {
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        color: Colors.white70,
+                        blurRadius: 12,
+                        offset: Offset(0, 0),
+                      ),
+                      Shadow(
+                        color: Color(0x80FF6B35),
+                        blurRadius: 20,
+                        offset: Offset(0, 0),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 2),
                 Row(
                   children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Colors.greenAccent,
-                        shape: BoxShape.circle,
+                    TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 1.0, end: 1.2),
+                      duration: const Duration(seconds: 1),
+                      curve: Curves.easeInOut,
+                      builder: (context, scale, child) {
+                        return Transform.scale(scale: scale, child: child);
+                      },
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white70, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.green.withOpacity(0.8),
+                              blurRadius: 12,
+                              spreadRadius: 3,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -182,10 +245,10 @@ class ChatScreen extends StatelessWidget {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: Colors.white.withOpacity(0.2),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: Colors.white.withOpacity(0.3),
                   width: 1,
                 ),
               ),

@@ -797,17 +797,7 @@ class FertilizerCalculatorScreen extends StatelessWidget {
         const SizedBox(height: 20),
         Container(
           padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
+          color: Colors.white,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -848,9 +838,9 @@ class FertilizerCalculatorScreen extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1.3, // Further reduced for more height
+                  crossAxisSpacing: 5,
+                  mainAxisSpacing: 5,
+                  childAspectRatio: 1.5, // Further reduced for more height
                 ),
                 itemCount: inputData.length,
                 itemBuilder: (context, index) {
@@ -862,20 +852,10 @@ class FertilizerCalculatorScreen extends StatelessWidget {
                   final icon = item['icon'] as IconData;
 
                   return Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.primary200),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
+                    padding: const EdgeInsets.all(5),
+                    color: Colors.white,
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
@@ -964,17 +944,7 @@ class FertilizerCalculatorScreen extends StatelessWidget {
         Container(
           margin: const EdgeInsets.only(bottom: 24),
           padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
+          color: Colors.white,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1024,7 +994,6 @@ class FertilizerCalculatorScreen extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1070,10 +1039,7 @@ class FertilizerCalculatorScreen extends StatelessWidget {
               // Calculation inputs
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                color: Colors.white,
                 child: Row(
                   children: [
                     Expanded(
@@ -1293,17 +1259,7 @@ class FertilizerCalculatorScreen extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1346,10 +1302,7 @@ class FertilizerCalculatorScreen extends StatelessWidget {
           // Non Organic Fertilizer
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.primary50,
-              borderRadius: BorderRadius.circular(12),
-            ),
+            color: AppColors.primary50,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1372,10 +1325,7 @@ class FertilizerCalculatorScreen extends StatelessWidget {
           // Organic Fertilizer
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.primary50,
-              borderRadius: BorderRadius.circular(12),
-            ),
+            color: AppColors.primary50,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1427,18 +1377,7 @@ class FertilizerCalculatorScreen extends StatelessWidget {
       width: cardWidth,
       height: 106,
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primary100),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      color: Colors.white,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -1457,7 +1396,6 @@ class FertilizerCalculatorScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: _parseColor(item.color).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               item.amount,
@@ -1491,18 +1429,8 @@ class FertilizerCalculatorScreen extends StatelessWidget {
     final padding = isSmallScreen ? 16.0 : 20.0;
     final buttonSize = isSmallScreen ? ButtonSize.medium : ButtonSize.large;
 
-    return Container(
-      padding: EdgeInsets.all(padding),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Obx(
         () => AnimatedContainer(
           duration: const Duration(milliseconds: 300),
