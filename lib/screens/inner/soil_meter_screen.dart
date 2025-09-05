@@ -504,7 +504,9 @@ class SoilMeterScreen extends StatelessWidget {
             children: [
               _buildActionIcon(Icons.lock_outline, 'Lock'),
               _buildActionIcon(Icons.edit_outlined, 'Edit'),
-              _buildActionIcon(Icons.refresh, 'Refresh'),
+              _buildActionIcon(Icons.refresh, 'Refresh', onPressed: () {
+                controller.refreshSoilData();
+              }),
               _buildActionIcon(Icons.download_outlined, 'Download'),
               _buildActionIcon(Icons.history, 'History'),
             ],
@@ -960,34 +962,39 @@ class SoilMeterScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionIcon(IconData icon, String label) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
+  Widget _buildActionIcon(IconData icon, String label, {
+    VoidCallback? onPressed
+  }) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: AppColors.textSecondary, size: 24),
           ),
-          child: Icon(icon, color: AppColors.textSecondary, size: 24),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w500,
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
