@@ -1657,90 +1657,66 @@ class FertilizerCalculatorScreen extends StatelessWidget {
   Widget _buildResults(FertilizerCalculatorController controller) {
     final recommendation = controller.recommendation.value!;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      color: Colors.white,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Simple Header
           Row(
             children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: AppColors.primary100,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(
-                  Icons.analytics,
-                  color: AppColors.primary600,
-                  size: 18,
-                ),
-              ),
+              Icon(Icons.analytics, color: AppColors.primary600, size: 28),
               const SizedBox(width: 12),
               const Text(
                 'Nutrition Quantities',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
               ),
             ],
           ),
-
           const SizedBox(height: 8),
-
           const Text(
-            'Based on your field size and tree quantities, we have selected a nutrition ratio for you',
+            'AI Calculated Recommendations',
             style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Info text
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.primary50,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Text(
+              'Based on your field size and tree quantities, we have selected a nutrition ratio for you',
+              style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
+              textAlign: TextAlign.center,
+            ),
           ),
 
           const SizedBox(height: 24),
 
-          // Non Organic Fertilizer
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: AppColors.primary50,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Non Organic Fertilizer',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _buildNutrientGrid(recommendation.nonOrganic),
-              ],
-            ),
+          // Non Organic Fertilizer Section
+          _buildSimpleFertilizerSection(
+            title: 'Non Organic Fertilizer',
+            subtitle: 'Chemical-based nutrients for rapid growth',
+            items: recommendation.nonOrganic,
+            icon: Icons.science,
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
-          // Organic Fertilizer
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: AppColors.primary50,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Organic Fertilizer',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _buildNutrientGrid(recommendation.organic),
-              ],
-            ),
+          // Organic Fertilizer Section
+          _buildSimpleFertilizerSection(
+            title: 'Organic Fertilizer',
+            subtitle: 'Natural nutrients for sustainable farming',
+            items: recommendation.organic,
+            icon: Icons.eco,
           ),
 
           const SizedBox(height: 24),
@@ -1753,72 +1729,155 @@ class FertilizerCalculatorScreen extends StatelessWidget {
             fullWidth: true,
             onPressed: () => controller.showSaveModal.value = true,
           ),
-
-          const SizedBox(height: 20),
         ],
       ),
     );
   }
 
-  Widget _buildNutrientGrid(List<FertilizerItemDto> items) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 16,
-      children: items.map((item) => _buildNutrientCard(item)).toList(),
-    );
-  }
-
-  Widget _buildNutrientCard(FertilizerItemDto item) {
-    final screenWidth = MediaQuery.of(Get.context!).size.width;
-    final cardWidth = (screenWidth - 80) / 3; // 3 columns with gaps
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      width: cardWidth,
-      height: 106,
-      padding: const EdgeInsets.all(12),
-      color: Colors.white,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            item.name,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: _parseColor(item.color).withValues(alpha: 0.1),
-            ),
-            child: Text(
-              item.amount,
-              style: TextStyle(
-                fontSize: 16,
+  Widget _buildSimpleFertilizerSection({
+    required String title,
+    required String subtitle,
+    required List<FertilizerItemDto> items,
+    required IconData icon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section header
+        Row(
+          children: [
+            Icon(icon, color: AppColors.primary600, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: _parseColor(item.color),
+                color: AppColors.textPrimary,
               ),
-              textAlign: TextAlign.center,
             ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          subtitle,
+          style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Nutrients list
+        _buildSimpleNutrientList(items),
+      ],
+    );
+  }
+
+  Widget _buildSimpleNutrientList(List<FertilizerItemDto> items) {
+    return Column(
+      children: [
+        // Header row
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          decoration: BoxDecoration(
+            color: AppColors.primary50,
+            borderRadius: BorderRadius.circular(8),
           ),
-          Text(
-            item.perTree,
-            style: const TextStyle(
-              fontSize: 10,
-              color: AppColors.textSecondary,
+          child: const Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: Text(
+                  'Nutrient',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Text(
+                  'Amount',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Text(
+                  'Per Tree',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Nutrient rows
+        ...items.map((item) {
+          final color = _parseColor(item.color);
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: color.withOpacity(0.3), width: 1),
             ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
+            child: Row(
+              children: [
+                // Name
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    item.name,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                    ),
+                  ),
+                ),
+                // Amount
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    item.amount,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                // Per tree
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    item.perTree,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
     );
   }
 
@@ -2124,9 +2183,11 @@ class FertilizerCalculatorScreen extends StatelessWidget {
                         duration: Duration(milliseconds: 300 + (index * 50)),
                         curve: Curves.easeOut,
                         builder: (context, value, child) {
+                          // Clamp the value to ensure it's between 0.0 and 1.0
+                          final clampedValue = value.clamp(0.0, 1.0);
                           return Transform.translate(
-                            offset: Offset(0, 20 * (1 - value)),
-                            child: Opacity(opacity: value, child: child),
+                            offset: Offset(0, 20 * (1 - clampedValue)),
+                            child: Opacity(opacity: clampedValue, child: child),
                           );
                         },
                         child: AnimatedContainer(

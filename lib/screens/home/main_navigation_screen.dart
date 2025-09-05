@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:async';
+import '../../services/storage_service.dart';
 import '../../constants/app_colors.dart';
 import 'home_screen.dart';
 import 'chat_screen.dart';
@@ -10,7 +11,7 @@ import '../placeholder_screens.dart' show ShopScreen;
 
 class MainNavigationController extends GetxController {
   final _selectedIndex = 0.obs;
-  final _showWelcomeDialog = true.obs;
+  final _showWelcomeDialog = false.obs;
 
   int get selectedIndex => _selectedIndex.value;
   bool get showWelcomeDialog => _showWelcomeDialog.value;
@@ -28,10 +29,21 @@ class MainNavigationController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Auto dismiss welcome dialog after 5 seconds
-    Timer(const Duration(seconds: 5), () {
+    _initWelcomeDialog();
+  }
+
+  Future<void> _initWelcomeDialog() async {
+    final storage = await StorageService.getInstance();
+    final isFirst = await storage.isFirstLaunch();
+    if (isFirst) {
+      _showWelcomeDialog.value = true;
+      await storage.setFirstLaunch(false);
+      Timer(const Duration(seconds: 5), () {
+        _showWelcomeDialog.value = false;
+      });
+    } else {
       _showWelcomeDialog.value = false;
-    });
+    }
   }
 
   final List<Widget> screens = [
