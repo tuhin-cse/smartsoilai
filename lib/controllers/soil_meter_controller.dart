@@ -8,12 +8,14 @@ class SoilMeterController extends GetxController {
   UsbPort? _port;
   List<UsbDevice> _devices = [];
   StreamSubscription? _usbEventSubscription;
+  Timer? _autoRefreshTimer;
   DateTime? _lastUpdated;
 
   // Reactive variables
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
   final RxBool isConnected = false.obs; // Sensor connection status
+  final RxBool isLocked = false.obs; // Lock state for manual/auto refresh
   final RxInt currentStyle = 0.obs; // 0 = style 1, 1 = style 2, 2 = style 3
   final RxString statusMessage = 'Disconnected'.obs;
   final Rx<DateTime?> lastUpdated = Rx<DateTime?>(null);
@@ -35,12 +37,15 @@ class SoilMeterController extends GetxController {
     isConnected.value = false;
     _initializeUSBListener();
     refreshDevices();
+    _startAutoRefreshTimer();
+    _checkExistingConnection();
   }
 
   @override
   void onClose() {
     _disconnect();
     _usbEventSubscription?.cancel();
+    _autoRefreshTimer?.cancel();
     super.onClose();
   }
 
@@ -49,7 +54,11 @@ class SoilMeterController extends GetxController {
     _usbEventSubscription = UsbSerial.usbEventStream?.listen((UsbEvent event) {
       if (event.event == UsbEvent.ACTION_USB_ATTACHED) {
         print('USB device attached');
-        refreshDevices();
+        refreshDevices().then((_) {
+          if (!isConnected.value) {
+            connectToSensor();
+          }
+        });
       } else if (event.event == UsbEvent.ACTION_USB_DETACHED) {
         print('USB device detached');
         _disconnect();
@@ -73,7 +82,9 @@ class SoilMeterController extends GetxController {
         for (var device in devices) {
           print('Device: ${device.deviceName}');
           print('  Vendor ID: 0x${device.vid?.toRadixString(16) ?? 'unknown'}');
-          print('  Product ID: 0x${device.pid?.toRadixString(16) ?? 'unknown'}');
+          print(
+            '  Product ID: 0x${device.pid?.toRadixString(16) ?? 'unknown'}',
+          );
         }
       }
     } catch (e) {
@@ -106,7 +117,8 @@ class SoilMeterController extends GetxController {
         targetDevice = _devices.firstWhere(
           (device) =>
               device.deviceName?.toLowerCase().contains('usb') == true ||
-              device.manufacturerName?.toLowerCase().contains('prolific') == true ||
+              device.manufacturerName?.toLowerCase().contains('prolific') ==
+                  true ||
               device.manufacturerName?.toLowerCase().contains('ftdi') == true ||
               device.vid == 0x067b, // Common USB-to-Serial chip vendor IDs
           orElse: () => _devices.first, // Fallback to first device
@@ -145,18 +157,18 @@ class SoilMeterController extends GetxController {
       // Start reading data automatically
       await loadSoilData();
 
-      Get.snackbar(
-        'Success',
-        'Connected to soil sensor successfully',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.primary,
-        colorText: Get.theme.colorScheme.onPrimary,
-      );
+      // Get.snackbar(
+      //   'Success',
+      //   'Connected to soil sensor successfully',
+      //   snackPosition: SnackPosition.BOTTOM,
+      //   backgroundColor: Get.theme.colorScheme.primary,
+      //   colorText: Get.theme.colorScheme.onPrimary,
+      // );
     } catch (e) {
       print('Connection error: $e');
       errorMessage.value = 'Connection failed: $e';
       statusMessage.value = 'Connection failed';
-      
+
       Get.snackbar(
         'Error',
         'Failed to connect to soil sensor: $e',
@@ -195,6 +207,53 @@ class SoilMeterController extends GetxController {
     currentStyle.value = (currentStyle.value + 1) % 3;
   }
 
+  /// Toggle lock state
+  void toggleLock() {
+    isLocked.value = !isLocked.value;
+    if (isLocked.value) {
+      Get.snackbar(
+        'Locked',
+        'Auto-refresh disabled. Tap refresh manually.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } else {
+      Get.snackbar(
+        'Unlocked',
+        'Auto-refresh enabled.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  /// Start auto-refresh timer
+  void _startAutoRefreshTimer() {
+    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (isConnected.value && !isLocked.value) {
+        _silentRefreshSoilData();
+      }
+    });
+  }
+
+  /// Check for existing USB connection when screen opens
+  void checkConnectionOnScreenOpen() async {
+    if (!isConnected.value) {
+      await _checkExistingConnection();
+    }
+  }
+
+  /// Check for existing USB connection
+  Future<void> _checkExistingConnection() async {
+    try {
+      List<UsbDevice> devices = await UsbSerial.listDevices();
+      if (devices.isNotEmpty && !isConnected.value) {
+        // Try to connect to the first available device
+        await connectToSensor(devices.first);
+      }
+    } catch (e) {
+      print('Error checking existing connection: $e');
+    }
+  }
+
   /// Load soil sensor data from HONDE sensor
   Future<void> loadSoilData() async {
     if (!isConnected.value || _port == null) {
@@ -210,7 +269,9 @@ class SoilMeterController extends GetxController {
       // Address: 0x01, Function: 0x03, Start: 0x0000, Length: 0x0008, CRC: 0x440C
       List<int> modbusQuery = [0x01, 0x03, 0x00, 0x00, 0x00, 0x08, 0x44, 0x0C];
 
-      print('Sending Modbus query: ${modbusQuery.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(' ')}');
+      print(
+        'Sending Modbus query: ${modbusQuery.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(' ')}',
+      );
 
       // Set up stream subscription to read response
       StreamSubscription? subscription;
@@ -221,7 +282,9 @@ class SoilMeterController extends GetxController {
       // Listen to incoming data stream
       subscription = _port!.inputStream?.listen(
         (Uint8List data) {
-          print('Received data chunk: ${data.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(' ')}');
+          print(
+            'Received data chunk: ${data.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(' ')}',
+          );
           responseBuffer.addAll(data);
 
           // Check if we have a complete Modbus response
@@ -252,7 +315,9 @@ class SoilMeterController extends GetxController {
             // Return partial response if we got some data
             responseCompleter.complete(List<int>.from(responseBuffer));
           } else {
-            responseCompleter.completeError(TimeoutException('No response from sensor', Duration(seconds: 3)));
+            responseCompleter.completeError(
+              TimeoutException('No response from sensor', Duration(seconds: 3)),
+            );
           }
         }
       });
@@ -268,14 +333,19 @@ class SoilMeterController extends GetxController {
         throw Exception('No response from sensor');
       }
 
-      print('Received complete response: ${response.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(' ')}');
+      print(
+        'Received complete response: ${response.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(' ')}',
+      );
 
       // Parse the Modbus response
-      Map<String, double> parsedData = _parseModbusResponse(Uint8List.fromList(response));
+      Map<String, double> parsedData = _parseModbusResponse(
+        Uint8List.fromList(response),
+      );
 
       // Update reactive variables with real sensor data
       temperature.value = parsedData['temperature'] ?? 0.0;
-      humidity.value = parsedData['moisture'] ?? 0.0; // Using humidity for moisture
+      humidity.value =
+          parsedData['moisture'] ?? 0.0; // Using humidity for moisture
       ph.value = parsedData['ph'] ?? 0.0;
       ec.value = parsedData['ec']?.toDouble() ?? 0.0;
       nitrogen.value = parsedData['nitrogen']?.toDouble() ?? 0.0;
@@ -287,11 +357,10 @@ class SoilMeterController extends GetxController {
       lastUpdated.value = _lastUpdated;
 
       print('Sensor data updated successfully');
-
     } catch (e) {
       print('Read error: $e');
       errorMessage.value = 'Failed to read sensor data: $e';
-      
+
       // Fall back to mock data if sensor read fails but connection exists
       if (isConnected.value) {
         print('Using mock data due to read error');
@@ -307,6 +376,98 @@ class SoilMeterController extends GetxController {
       );
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /// Load soil sensor data silently (no loading indicators)
+  Future<void> _loadSoilDataSilently() async {
+    if (!isConnected.value || _port == null) {
+      return;
+    }
+
+    try {
+      errorMessage.value = '';
+
+      // Modbus RTU query for all 8 parameters (from HONDE manual)
+      // Address: 0x01, Function: 0x03, Start: 0x0000, Length: 0x0008, CRC: 0x440C
+      List<int> modbusQuery = [0x01, 0x03, 0x00, 0x00, 0x00, 0x08, 0x44, 0x0C];
+
+      // Set up stream subscription to read response
+      StreamSubscription? subscription;
+      Completer<List<int>> responseCompleter = Completer<List<int>>();
+      List<int> responseBuffer = [];
+      Timer? timeoutTimer;
+
+      // Listen to incoming data stream
+      subscription = _port!.inputStream?.listen(
+        (Uint8List data) {
+          responseBuffer.addAll(data);
+
+          // Check if we have a complete Modbus response
+          // Expected: Address(1) + Function(1) + DataLength(1) + Data(16) + CRC(2) = 21 bytes
+          if (responseBuffer.length >= 21) {
+            timeoutTimer?.cancel();
+            subscription?.cancel();
+            if (!responseCompleter.isCompleted) {
+              responseCompleter.complete(List<int>.from(responseBuffer));
+            }
+          }
+        },
+        onError: (error) {
+          timeoutTimer?.cancel();
+          subscription?.cancel();
+          if (!responseCompleter.isCompleted) {
+            responseCompleter.completeError(error);
+          }
+        },
+      );
+
+      // Set up timeout
+      timeoutTimer = Timer(Duration(seconds: 3), () {
+        subscription?.cancel();
+        if (!responseCompleter.isCompleted) {
+          if (responseBuffer.isNotEmpty) {
+            // Return partial response if we got some data
+            responseCompleter.complete(List<int>.from(responseBuffer));
+          } else {
+            responseCompleter.completeError(
+              TimeoutException('No response from sensor', Duration(seconds: 3)),
+            );
+          }
+        }
+      });
+
+      // Send query to sensor
+      await _port!.write(Uint8List.fromList(modbusQuery));
+
+      // Wait for response
+      List<int> response = await responseCompleter.future;
+
+      if (response.isEmpty) {
+        return;
+      }
+
+      // Parse the Modbus response
+      Map<String, double> parsedData = _parseModbusResponse(
+        Uint8List.fromList(response),
+      );
+
+      // Update reactive variables with real sensor data
+      temperature.value = parsedData['temperature'] ?? temperature.value;
+      humidity.value = parsedData['moisture'] ?? humidity.value;
+      ph.value = parsedData['ph'] ?? ph.value;
+      ec.value = parsedData['ec']?.toDouble() ?? ec.value;
+      nitrogen.value = parsedData['nitrogen']?.toDouble() ?? nitrogen.value;
+      phosphorus.value =
+          parsedData['phosphorus']?.toDouble() ?? phosphorus.value;
+      potassium.value = parsedData['potassium']?.toDouble() ?? potassium.value;
+      salinity.value = parsedData['salinity']?.toDouble() ?? salinity.value;
+
+      _lastUpdated = DateTime.now();
+      lastUpdated.value = _lastUpdated;
+    } catch (e) {
+      // Silent failure - don't show errors for auto-refresh
+      print('Silent refresh error: $e');
     }
   }
 
@@ -399,6 +560,11 @@ class SoilMeterController extends GetxController {
     await loadSoilData();
   }
 
+  /// Silent refresh soil data (no loading indicators)
+  Future<void> _silentRefreshSoilData() async {
+    await _loadSoilDataSilently();
+  }
+
   /// Toggle sensor connection (for UI compatibility)
   Future<void> toggleConnection() async {
     if (isConnected.value) {
@@ -456,14 +622,17 @@ class SoilMeterController extends GetxController {
       );
     }
 
-    if (humidity.value < 30) { // Soil moisture
+    if (humidity.value < 30) {
+      // Soil moisture
       recommendations.add('Soil moisture is low, consider irrigation');
     } else if (humidity.value > 80) {
       recommendations.add('Soil moisture is high, improve drainage');
     }
 
     if (ec.value > 2.0) {
-      recommendations.add('Electrical conductivity is high, check salinity levels');
+      recommendations.add(
+        'Electrical conductivity is high, check salinity levels',
+      );
     }
 
     if (recommendations.isEmpty) {
@@ -481,30 +650,30 @@ class SoilMeterController extends GetxController {
         if (value < 30) return 'low';
         if (value < 70) return 'medium';
         return 'high';
-      
+
       case 'ph':
         if (value < 6.0 || value > 8.0) return 'warning';
         return 'good';
-      
+
       case 'temperature':
         if (value < 10 || value > 35) return 'warning';
         return 'good';
-      
+
       case 'nitrogen':
         if (value < 30) return 'low';
         if (value < 100) return 'medium';
         return 'high';
-      
+
       case 'phosphorus':
         if (value < 15) return 'low';
         if (value < 50) return 'medium';
         return 'high';
-      
+
       case 'potassium':
         if (value < 150) return 'low';
         if (value < 300) return 'medium';
         return 'high';
-      
+
       default:
         return 'normal';
     }

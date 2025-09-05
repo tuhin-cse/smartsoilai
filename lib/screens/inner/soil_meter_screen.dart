@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../constants/app_colors.dart';
 import '../../controllers/soil_meter_controller.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/loader.dart';
 
 class SoilMeterScreen extends StatelessWidget {
   const SoilMeterScreen({super.key});
@@ -11,20 +12,26 @@ class SoilMeterScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(SoilMeterController());
 
+    // Check connection status when screen is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.checkConnectionOnScreenOpen();
+    });
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7F9),
-      body: SafeArea(
-        child: Obx(() {
-          if (controller.isLoading.value) {
-            return _buildLoadingState();
-          }
+      body: Obx(
+        () => LoaderStack(
+          loading: controller.isLoading.value && controller.isConnected.value,
+          child: SafeArea(
+            child: Obx(() {
+              if (controller.errorMessage.value.isNotEmpty) {
+                return _buildErrorState(controller);
+              }
 
-          if (controller.errorMessage.value.isNotEmpty) {
-            return _buildErrorState(controller);
-          }
-
-          return _buildSoilMeterContent(controller);
-        }),
+              return _buildSoilMeterContent(controller);
+            }),
+          ),
+        ),
       ),
     );
   }
@@ -81,7 +88,10 @@ class SoilMeterScreen extends StatelessWidget {
         Expanded(
           child:
               controller.isConnected.value
-                  ? _buildConnectedContent(controller)
+                  ? LoaderStack(
+                    loading: controller.isLoading.value,
+                    child: _buildConnectedContent(controller),
+                  )
                   : _buildDisconnectedContent(controller),
         ),
       ],
@@ -126,32 +136,6 @@ class SoilMeterScreen extends StatelessWidget {
               height: 1.6,
             ),
             textAlign: TextAlign.center,
-          ),
-
-          const Spacer(),
-
-          // Connect Button - positioned at bottom but visible
-          Padding(
-            padding: const EdgeInsets.only(bottom: 40),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => controller.toggleConnection(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary500,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  'Connect Sensor',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
           ),
         ],
       ),
@@ -502,11 +486,25 @@ class SoilMeterScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildActionIcon(Icons.lock_outline, 'Lock'),
+              _buildActionIcon(
+                controller.isLocked.value ? Icons.lock : Icons.lock_open,
+                controller.isLocked.value ? 'Unlock' : 'Lock',
+                onPressed:
+                    controller.isConnected.value
+                        ? () => controller.toggleLock()
+                        : null,
+                isDisabled: !controller.isConnected.value,
+              ),
               _buildActionIcon(Icons.edit_outlined, 'Edit'),
-              _buildActionIcon(Icons.refresh, 'Refresh', onPressed: () {
-                controller.refreshSoilData();
-              }),
+              _buildActionIcon(
+                Icons.refresh,
+                'Refresh',
+                onPressed:
+                    controller.isConnected.value
+                        ? () => controller.refreshSoilData()
+                        : null,
+                isDisabled: !controller.isConnected.value,
+              ),
               _buildActionIcon(Icons.download_outlined, 'Download'),
               _buildActionIcon(Icons.history, 'History'),
             ],
@@ -962,34 +960,44 @@ class SoilMeterScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionIcon(IconData icon, String label, {
-    VoidCallback? onPressed
+  Widget _buildActionIcon(
+    IconData icon,
+    String label, {
+    VoidCallback? onPressed,
+    bool isDisabled = false,
   }) {
     return GestureDetector(
-      onTap: onPressed,
+      onTap: isDisabled ? null : onPressed,
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDisabled ? Colors.grey.shade100 : Colors.white,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              boxShadow:
+                  isDisabled
+                      ? null
+                      : [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
             ),
-            child: Icon(icon, color: AppColors.textSecondary, size: 24),
+            child: Icon(
+              icon,
+              color: isDisabled ? Colors.grey : AppColors.textSecondary,
+              size: 24,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: AppColors.textSecondary,
+              color: isDisabled ? Colors.grey : AppColors.textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),
