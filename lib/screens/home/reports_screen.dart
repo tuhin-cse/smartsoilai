@@ -37,10 +37,7 @@ class ReportsController extends GetxController {
           title: const Text('Error'),
           content: const Text('Failed to load reports. Please try again.'),
           actions: [
-            TextButton(
-              onPressed: () => Get.back(),
-              child: const Text('OK'),
-            ),
+            TextButton(onPressed: () => Get.back(), child: const Text('OK')),
           ],
         ),
       );
@@ -83,10 +80,7 @@ class ReportsController extends GetxController {
         title: const Text('Delete Report'),
         content: Text('Are you sure you want to delete "$reportName"?'),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           TextButton(
             onPressed: () async {
               Get.back(); // Close dialog first
@@ -139,7 +133,7 @@ class ReportsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(ReportsController());
-    
+
     return Scaffold(
       backgroundColor: AppColors.backgroundSecondaryLight,
       body: SafeArea(
@@ -147,14 +141,14 @@ class ReportsScreen extends StatelessWidget {
           children: [
             // Header
             _buildHeader(controller),
-            
+
             // Content
             Expanded(
               child: Obx(() {
                 if (!controller._authController.isAuthenticated) {
                   return _buildAuthRequiredState();
                 }
-                
+
                 return RefreshIndicator(
                   onRefresh: controller.onRefresh,
                   color: AppColors.primary500,
@@ -179,8 +173,10 @@ class ReportsScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          GestureDetector(
+          /* GestureDetector(
             onTap: controller.goBack,
             child: Container(
               width: 38,
@@ -195,19 +191,16 @@ class ReportsScreen extends StatelessWidget {
                 size: 20,
               ),
             ),
-          ),
-          Expanded(
-            child: Text(
-              'Reports',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
+          ), */
+          Text(
+            'Reports',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(width: 38),
         ],
       ),
     );
@@ -218,20 +211,24 @@ class ReportsScreen extends StatelessWidget {
       if (controller.isLoading.value) {
         return _buildLoadingState();
       }
-      
+
       if (controller.reports.isEmpty) {
         return _buildEmptyState(controller);
       }
-      
+
       return Column(
-        children: controller.reports
-            .map((report) => _buildReportCard(controller, report))
-            .toList(),
+        children:
+            controller.reports
+                .map((report) => _buildReportCard(controller, report))
+                .toList(),
       );
     });
   }
 
-  Widget _buildReportCard(ReportsController controller, ReportListItemDto report) {
+  Widget _buildReportCard(
+    ReportsController controller,
+    ReportListItemDto report,
+  ) {
     return GestureDetector(
       onTap: () => controller.handleReportPress(report.id),
       onLongPress: () => controller.handleDeleteReport(report.id, report.name),
@@ -267,9 +264,9 @@ class ReportsScreen extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(width: 16),
-            
+
             // Report content
             Expanded(
               child: Column(
@@ -294,7 +291,7 @@ class ReportsScreen extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // Arrow
             const Icon(
               Icons.chevron_right,
@@ -322,7 +319,7 @@ class ReportsScreen extends StatelessWidget {
                 color: Color(0xFFD1D5DB),
               ),
             ),
-            
+
             // Empty title
             const Text(
               'No Reports Yet',
@@ -333,9 +330,9 @@ class ReportsScreen extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // Empty text
             const Text(
               'Start analyzing your soil to generate your first report. Your analysis history will appear here.',
@@ -346,9 +343,9 @@ class ReportsScreen extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Create report button
             CustomButton(
               title: 'Create Your First Report',
@@ -374,10 +371,7 @@ class ReportsScreen extends StatelessWidget {
             SizedBox(height: 16),
             Text(
               'Loading your reports...',
-              style: TextStyle(
-                fontSize: 16,
-                color: AppColors.textSecondary,
-              ),
+              style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -404,10 +398,7 @@ class ReportsScreen extends StatelessWidget {
             SizedBox(height: 12),
             Text(
               'Please sign in to view your reports',
-              style: TextStyle(
-                fontSize: 16,
-                color: AppColors.textSecondary,
-              ),
+              style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],

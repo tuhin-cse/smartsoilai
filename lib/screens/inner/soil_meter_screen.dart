@@ -4,6 +4,7 @@ import '../../constants/app_colors.dart';
 import '../../controllers/soil_meter_controller.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/loader.dart';
+import 'fertilizer_calculator_screen.dart';
 
 class SoilMeterScreen extends StatelessWidget {
   const SoilMeterScreen({super.key});
@@ -159,7 +160,7 @@ class SoilMeterScreen extends StatelessWidget {
           const SizedBox(height: 30),
 
           // Fertilizer Calculation Button
-          _buildFertilizerButton(),
+          _buildFertilizerButton(controller),
         ],
       ),
     );
@@ -227,7 +228,7 @@ class SoilMeterScreen extends StatelessWidget {
           const SizedBox(height: 30),
 
           // Fertilizer Calculation Button
-          _buildFertilizerButton(),
+          _buildFertilizerButton(controller),
         ],
       ),
     );
@@ -299,7 +300,7 @@ class SoilMeterScreen extends StatelessWidget {
           const SizedBox(height: 30),
 
           // Fertilizer Calculation Button
-          _buildFertilizerButton(),
+          _buildFertilizerButton(controller),
         ],
       ),
     );
@@ -778,18 +779,25 @@ class SoilMeterScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFertilizerButton() {
+  Widget _buildFertilizerButton(SoilMeterController controller) {
     return Container(
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {
-          // TODO: Navigate to fertilizer calculation screen
-          Get.snackbar(
-            'Coming Soon',
-            'Fertilizer calculation feature will be available soon',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: AppColors.primary500,
-            colorText: Colors.white,
+          controller.toggleLock();
+          // Navigate to fertilizer calculation screen with sensor data
+          Get.to(
+            () => const FertilizerCalculatorScreen(),
+            arguments: {
+              'temperature': controller.temperature.value,
+              'humidity': controller.humidity.value,
+              'ec': controller.ec.value,
+              'ph': controller.ph.value,
+              'nitrogen': controller.nitrogen.value,
+              'phosphorus': controller.phosphorus.value,
+              'potassium': controller.potassium.value,
+              'salinity': controller.salinity.value,
+            },
           );
         },
         style: ElevatedButton.styleFrom(

@@ -99,7 +99,31 @@ class FertilizerCalculatorController extends GetxController {
     saveForm[field] = value;
   }
 
-  // Get AI crop recommendations
+  Future<void> getScreenParams() async {
+    final args = Get.arguments;
+    if (args != null && args is Map<String, dynamic>) {
+      // Pre-fill sensor data from arguments
+      sensorData['temperature'] = args['temperature']?.toString() ?? '';
+      sensorData['humidity'] = args['humidity']?.toString() ?? '';
+      sensorData['ec'] = args['ec']?.toString() ?? '';
+      sensorData['ph'] = args['ph']?.toString() ?? '';
+      sensorData['nitrogen'] = args['nitrogen']?.toString() ?? '';
+      sensorData['phosphorus'] = args['phosphorus']?.toString() ?? '';
+      sensorData['potassium'] = args['potassium']?.toString() ?? '';
+      sensorData['salinity'] = args['salinity']?.toString() ?? '';
+      // Skip to step 2
+      currentStep.value = 2;
+      // Automatically get AI recommendations
+      await getAICropRecommendations();
+    }
+  }
+
+  @override
+  void onInit() async {
+    super.onInit();
+    await getScreenParams();
+  }
+
   Future<void> getAICropRecommendations() async {
     if (!_authController.isAuthenticated) {
       Get.dialog(
@@ -140,20 +164,199 @@ class FertilizerCalculatorController extends GetxController {
         showAiRecommendations.value = true;
 
         Get.dialog(
-          AlertDialog(
-            title: const Text('AI Recommendations Ready'),
-            content: Text(
-              "We've analyzed your soil data and found ${response.recommendations.length} suitable crops for your field. The top recommendation is ${response.recommendations.first.name}.",
+          Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Get.back();
-                  currentStep.value = 2;
-                },
-                child: const Text('Continue'),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white,
+                    AppColors.primary50.withValues(alpha: 0.3),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.primary200, width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary500.withValues(alpha: 0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
-            ],
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Success Icon with subtle animation
+                  TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0.8, end: 1.0),
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.elasticOut,
+                    builder: (context, scale, child) {
+                      return Transform.scale(
+                        scale: scale,
+                        child: Container(
+                          width: 70,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.primary400,
+                                AppColors.primary600,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary500.withValues(
+                                  alpha: 0.3,
+                                ),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.check_circle,
+                            size: 32,
+                            color: Colors.white,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Title with better styling
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary100.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.auto_awesome,
+                          color: AppColors.primary700,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'AI Recommendations Ready!',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Content with highlighted numbers
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.primary100),
+                    ),
+                    child: RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                          height: 1.5,
+                        ),
+                        children: [
+                          const TextSpan(
+                            text: "We've analyzed your soil data and found ",
+                          ),
+                          TextSpan(
+                            text: "${response.recommendations.length}",
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary600,
+                              fontSize: 18,
+                            ),
+                          ),
+                          const TextSpan(
+                            text:
+                                " suitable crops for your field.\n\nThe top recommendation is ",
+                          ),
+                          TextSpan(
+                            text: response.recommendations.first.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary600,
+                              fontSize: 18,
+                            ),
+                          ),
+                          const TextSpan(text: "!"),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Enhanced Button
+                  Container(
+                    width: double.infinity,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppColors.primary500, AppColors.primary600],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary500.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Get.back();
+                        currentStep.value = 2;
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Continue to Next Step',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         );
       } else {
@@ -459,44 +662,62 @@ class FertilizerCalculatorScreen extends StatelessWidget {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 360;
     final isLargeScreen = screenSize.width > 600;
+    final MediaQueryData mediaQuery = MediaQuery.of(context);
+    final EdgeInsets safeAreaInsets = mediaQuery.padding;
 
-    return Scaffold(
-      backgroundColor: AppColors.backgroundSecondaryLight,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Stack(
-              children: [
-                Column(
+    return Obx(
+      () => LoaderStack(
+        loading:
+            controller.isLoading.value ||
+            controller.isSaving.value ||
+            controller.isCropRecommendationsLoading.value,
+        child: Scaffold(
+          backgroundColor: AppColors.backgroundSecondaryLight,
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Stack(
                   children: [
-                    // Header
-                    _buildHeader(controller, isSmallScreen, isLargeScreen),
+                    Column(
+                      children: [
+                        // Header
+                        _buildHeader(
+                          controller,
+                          isSmallScreen,
+                          isLargeScreen,
+                          safeAreaInsets,
+                        ),
 
-                    // Content
-                    Expanded(
-                      child: _buildContent(
-                        controller,
-                        constraints,
-                        isSmallScreen,
-                        isLargeScreen,
-                      ),
+                        // Content
+                        Expanded(
+                          child: _buildContent(
+                            controller,
+                            constraints,
+                            isSmallScreen,
+                            isLargeScreen,
+                          ),
+                        ),
+
+                        // Bottom button for step 1
+                        Obx(() {
+                          if (controller.currentStep.value == 1) {
+                            return _buildBottomButton(
+                              controller,
+                              isSmallScreen,
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        }),
+                      ],
                     ),
 
-                    // Bottom button for step 1
-                    Obx(() {
-                      if (controller.currentStep.value == 1) {
-                        return _buildBottomButton(controller, isSmallScreen);
-                      }
-                      return const SizedBox.shrink();
-                    }),
+                    // Modals
+                    _buildModals(controller, screenSize),
                   ],
-                ),
-
-                // Modals
-                _buildModals(controller, screenSize),
-              ],
-            );
-          },
+                );
+              },
+            ),
+          ),
         ),
       ),
     );
@@ -506,173 +727,52 @@ class FertilizerCalculatorScreen extends StatelessWidget {
     FertilizerCalculatorController controller,
     bool isSmallScreen,
     bool isLargeScreen,
+    EdgeInsets safeAreaInsets,
   ) {
-    final padding =
-        isSmallScreen
-            ? 16.0
-            : isLargeScreen
-            ? 24.0
-            : 20.0;
-    final titleSize =
-        isSmallScreen
-            ? 18.0
-            : isLargeScreen
-            ? 24.0
-            : 20.0;
-    final stepSize =
-        isSmallScreen
-            ? 35.0
-            : isLargeScreen
-            ? 45.0
-            : 40.0;
-
-    return Column(
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: EdgeInsets.only(left: 20, right: 20),
-              decoration: const BoxDecoration(color: Color(0xFFFAFAF8)),
-              child: Row(
-                children: [
-                  // Back button
-                  GestureDetector(
-                    onTap: () {
-                      Get.back();
-                    },
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFE3F8CF),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.chevron_left,
-                        color: Color(0xFF435C5C),
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ],
+    return Container(
+      padding: EdgeInsets.only(
+        top: safeAreaInsets.top,
+        left: 20,
+        right: 20,
+        bottom: 16,
+      ),
+      decoration: const BoxDecoration(color: Color(0xFFFAFAF8)),
+      child: Row(
+        children: [
+          // Back button
+          GestureDetector(
+            onTap: () {
+              Get.back();
+            },
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE3F8CF),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.chevron_left,
+                color: Color(0xFF435C5C),
+                size: 20,
               ),
             ),
-
-            Expanded(
+          ),
+          const Expanded(
+            child: Center(
               child: Text(
                 'Fertilizer Calculator',
-                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: titleSize,
+                  fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: Color(0xFF1F1F1F),
                 ),
               ),
             ),
-            SizedBox(width: stepSize - 2),
-          ],
-        ),
-        const SizedBox(height: 16),
-        // Step Indicator
-        // Obx(
-        //   () => _buildStepIndicator(
-        //     controller.currentStep.value,
-        //     isSmallScreen,
-        //     isLargeScreen,
-        //   ),
-        // ),
-      ],
-    );
-  }
-
-  Widget _buildStepIndicator(
-    int currentStep,
-    bool isSmallScreen,
-    bool isLargeScreen,
-  ) {
-    final stepSize =
-        isSmallScreen
-            ? 32.0
-            : isLargeScreen
-            ? 48.0
-            : 40.0;
-    final connectorWidth =
-        isSmallScreen
-            ? 40.0
-            : isLargeScreen
-            ? 80.0
-            : 60.0;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(2, (index) {
-        final step = index + 1;
-        final isActive = step == currentStep;
-        final isCompleted = step < currentStep;
-
-        return Row(
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              width: stepSize,
-              height: stepSize,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color:
-                    isActive
-                        ? AppColors.primary500
-                        : isCompleted
-                        ? AppColors.primary400
-                        : Colors.white.withValues(alpha: 0.9),
-                border: Border.all(
-                  color:
-                      isActive || isCompleted
-                          ? AppColors.primary500
-                          : AppColors.primary200,
-                  width: 2,
-                ),
-                boxShadow:
-                    isActive
-                        ? [
-                          BoxShadow(
-                            color: AppColors.primary500.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            spreadRadius: 2,
-                          ),
-                        ]
-                        : null,
-              ),
-              child: Center(
-                child:
-                    isCompleted
-                        ? Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: isSmallScreen ? 16 : 20,
-                        )
-                        : Text(
-                          '$step',
-                          style: TextStyle(
-                            color:
-                                isActive ? Colors.white : AppColors.primary600,
-                            fontWeight: FontWeight.bold,
-                            fontSize: isSmallScreen ? 14 : 16,
-                          ),
-                        ),
-              ),
-            ),
-            if (index < 1)
-              Container(
-                width: connectorWidth,
-                height: 2,
-                color:
-                    currentStep > step
-                        ? AppColors.primary500
-                        : AppColors.primary200,
-              ),
-          ],
-        );
-      }),
+          ),
+          const SizedBox(width: 38), // For symmetry
+        ],
+      ),
     );
   }
 
@@ -1417,7 +1517,6 @@ class FertilizerCalculatorScreen extends StatelessWidget {
     FertilizerCalculatorController controller,
     bool isSmallScreen,
   ) {
-    final padding = isSmallScreen ? 16.0 : 20.0;
     final buttonSize = isSmallScreen ? ButtonSize.medium : ButtonSize.large;
 
     return Padding(
