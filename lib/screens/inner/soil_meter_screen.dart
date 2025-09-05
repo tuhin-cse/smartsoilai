@@ -36,22 +36,6 @@ class SoilMeterScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadingState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(color: AppColors.primary500),
-          SizedBox(height: 16),
-          Text(
-            'Loading soil data...',
-            style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildErrorState(SoilMeterController controller) {
     return Center(
       child: Column(
@@ -494,6 +478,7 @@ class SoilMeterScreen extends StatelessWidget {
                         ? () => controller.toggleLock()
                         : null,
                 isDisabled: !controller.isConnected.value,
+                isHighlighted: controller.isLocked.value,
               ),
               _buildActionIcon(Icons.edit_outlined, 'Edit'),
               _buildActionIcon(
@@ -965,6 +950,7 @@ class SoilMeterScreen extends StatelessWidget {
     String label, {
     VoidCallback? onPressed,
     bool isDisabled = false,
+    bool isHighlighted = false,
   }) {
     return GestureDetector(
       onTap: isDisabled ? null : onPressed,
@@ -973,11 +959,24 @@ class SoilMeterScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDisabled ? Colors.grey.shade100 : Colors.white,
+              color:
+                  isDisabled
+                      ? Colors.grey.shade100
+                      : isHighlighted
+                      ? AppColors.primary500
+                      : Colors.white,
               borderRadius: BorderRadius.circular(12),
               boxShadow:
                   isDisabled
                       ? null
+                      : isHighlighted
+                      ? [
+                        BoxShadow(
+                          color: AppColors.primary500.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
                       : [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.05),
@@ -988,7 +987,12 @@ class SoilMeterScreen extends StatelessWidget {
             ),
             child: Icon(
               icon,
-              color: isDisabled ? Colors.grey : AppColors.textSecondary,
+              color:
+                  isDisabled
+                      ? Colors.grey
+                      : isHighlighted
+                      ? Colors.white
+                      : AppColors.textSecondary,
               size: 24,
             ),
           ),
@@ -997,7 +1001,12 @@ class SoilMeterScreen extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 12,
-              color: isDisabled ? Colors.grey : AppColors.textSecondary,
+              color:
+                  isDisabled
+                      ? Colors.grey
+                      : isHighlighted
+                      ? AppColors.primary500
+                      : AppColors.textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),

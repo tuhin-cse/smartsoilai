@@ -210,19 +210,19 @@ class SoilMeterController extends GetxController {
   /// Toggle lock state
   void toggleLock() {
     isLocked.value = !isLocked.value;
-    if (isLocked.value) {
-      Get.snackbar(
-        'Locked',
-        'Auto-refresh disabled. Tap refresh manually.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    } else {
-      Get.snackbar(
-        'Unlocked',
-        'Auto-refresh enabled.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    }
+    // if (isLocked.value) {
+    //   Get.snackbar(
+    //     'Locked',
+    //     'Auto-refresh disabled. Tap refresh manually.',
+    //     snackPosition: SnackPosition.BOTTOM,
+    //   );
+    // } else {
+    //   Get.snackbar(
+    //     'Unlocked',
+    //     'Auto-refresh enabled.',
+    //     snackPosition: SnackPosition.BOTTOM,
+    //   );
+    // }
   }
 
   /// Start auto-refresh timer
