@@ -6,6 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:smartsoilai/widgets/loader.dart';
 
 import '../../controllers/auth_controller.dart';
+import '../../repositories/exceptions/api_exception.dart';
 import '../../widgets/input.dart';
 import '../../repositories/api_client.dart';
 
@@ -51,6 +52,14 @@ class _LoginScreenState extends State<LoginScreen> {
       if (authController.isAuthenticated) {
         Get.offNamed('/main-navigation');
       }
+    }  on ApiException catch (e) {
+      if (e.errorCode == 'EMAIL_NOT_VERIFIED') {
+
+        // Implement email reverification here
+
+        print("Email is not verified");
+      }
+
     } catch (error) {
       // Error handling is done in the controller
     } finally {

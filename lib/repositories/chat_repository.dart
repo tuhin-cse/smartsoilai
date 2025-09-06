@@ -246,6 +246,9 @@ class ChatRepository {
         data: requestDto.toJson(),
       );
 
+
+      print(response.data);
+
       if (response.statusCode == 200) {
         return CropDiseaseAnalysisResponseDto.fromJson(response.data);
       } else {

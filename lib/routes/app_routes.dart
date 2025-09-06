@@ -14,7 +14,10 @@ import '../screens/placeholder_screens.dart';
 import '../screens/inner/fertilizer_calculator_screen.dart';
 import '../screens/inner/report_detail_screen.dart';
 import '../screens/inner/soil_meter_screen.dart';
+import '../screens/inner/disease_analysis_screen.dart';
+import '../screens/inner/crop_disease_scanner_screen.dart';
 import '../screens/settings_screen.dart';
+import '../screens/more/privacy_policy_screen.dart';
 
 class AppRoutes {
   // Route names
@@ -31,6 +34,7 @@ class AppRoutes {
   static const String home = '/home';
   static const String mainNavigation = '/main-navigation';
   static const String diseaseAnalysis = '/disease-analysis';
+  static const String diseaseScanner = '/disease-scanner';
   static const String reportDetail = '/report-detail';
   static const String chat = '/chat';
   static const String reports = '/reports';
@@ -108,6 +112,11 @@ class AppRoutes {
     GetPage(
       name: diseaseAnalysis,
       page: () => const DiseaseAnalysisScreen(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: diseaseScanner,
+      page: () => const CropDiseaseScannerScreen(),
       transition: Transition.rightToLeft,
     ),
     GetPage(

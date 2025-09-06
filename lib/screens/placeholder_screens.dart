@@ -58,20 +58,6 @@ class NewPasswordScreen extends StatelessWidget {
   }
 }
 
-class DiseaseAnalysisScreen extends StatelessWidget {
-  const DiseaseAnalysisScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Disease Analysis')),
-      body: const Center(
-        child: Text('Disease Analysis Screen'),
-      ),
-    );
-  }
-}
-
 class ShopScreen extends StatelessWidget {
   const ShopScreen({super.key});
 
@@ -111,20 +97,6 @@ class ProfileScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Profile')),
       body: const Center(
         child: Text('Profile Screen'),
-      ),
-    );
-  }
-}
-
-class PrivacyPolicyScreen extends StatelessWidget {
-  const PrivacyPolicyScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Privacy Policy')),
-      body: const Center(
-        child: Text('Privacy Policy Screen'),
       ),
     );
   }

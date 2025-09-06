@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../constants/app_colors.dart';
@@ -17,7 +16,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final PageController _pageController = PageController();
-  final ImagePicker _imagePicker = ImagePicker();
   int _currentSlide = 0;
   bool _isAnalyzing = false;
 
@@ -43,99 +41,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _handleTakePicture() async {
-    try {
-      final result = await showModalBottomSheet<ImageSource>(
-        context: context,
-        builder:
-            (context) => SafeArea(
-              child: Wrap(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.camera_alt),
-                    title: const Text('Camera'),
-                    onTap: () => Navigator.pop(context, ImageSource.camera),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.photo_library),
-                    title: const Text('Photo Library'),
-                    onTap: () => Navigator.pop(context, ImageSource.gallery),
-                  ),
-                ],
-              ),
-            ),
-      );
-
-      if (result != null) {
-        await _launchImagePicker(result);
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to access camera: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.error,
-        colorText: Colors.white,
-      );
-    }
-  }
-
-  Future<void> _launchImagePicker(ImageSource source) async {
-    try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: source,
-        preferredCameraDevice: CameraDevice.rear,
-        imageQuality: 80,
-      );
-
-      if (image != null) {
-        await _processImage(image.path);
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to pick image: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.error,
-        colorText: Colors.white,
-      );
-    }
-  }
-
-  Future<void> _processImage(String imagePath) async {
-    setState(() {
-      _isAnalyzing = true;
-    });
-
-    try {
-      // TODO: Process image with AI API
-      await Future.delayed(const Duration(seconds: 2)); // Simulate processing
-
-      // Navigate to disease analysis screen
-      Get.toNamed(
-        '/disease-analysis',
-        arguments: {
-          'imagePath': imagePath,
-          'analysis': {
-            'disease': 'Leaf Blight',
-            'confidence': 0.89,
-            'severity': 'Moderate',
-            'treatment': 'Apply fungicide spray',
-          },
-        },
-      );
-    } catch (e) {
-      Get.snackbar(
-        'Analysis Failed',
-        'Unable to analyze the image. Please try again.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.error,
-        colorText: Colors.white,
-      );
-    } finally {
-      setState(() {
-        _isAnalyzing = false;
-      });
-    }
+    // Navigate directly to the disease scanner screen
+    Get.toNamed('/disease-scanner');
   }
 
   @override

@@ -109,9 +109,6 @@ class AuthController extends GetxController {
     try {
       final request = SigninRequest(email: email, password: password);
       final response = await _authRepository.signin(request);
-
-      print(response);
-
       // Save tokens to secure storage
       await _secureStorage.write(
         key: _accessTokenKey,
@@ -134,7 +131,9 @@ class AuthController extends GetxController {
 
       _showSuccessMessage('Login successful');
     } on ApiException catch (e) {
-      _showErrorMessage('Login Failed', e.message);
+      if (e.errorCode != 'EMAIL_NOT_VERIFIED') {
+        _showErrorMessage('Login Failed', e.message);
+      }
       throw e;
     } catch (e) {
       _showErrorMessage('Login Failed', 'An unexpected error occurred');

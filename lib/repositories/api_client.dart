@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import '../config/app_config.dart';
 import 'exceptions/api_exception.dart';
 
@@ -213,6 +214,7 @@ class ApiClient {
         case DioExceptionType.badResponse:
           final statusCode = error.response?.statusCode;
           final message = _extractErrorMessage(error.response?.data);
+          final errorType = _getErrorType(error.response?.data);
 
           switch (statusCode) {
             case 400:
@@ -221,6 +223,13 @@ class ApiClient {
                 errors: _extractValidationErrors(error.response?.data),
               );
             case 401:
+              if (errorType == 'EMAIL_NOT_VERIFIED') {
+                return ApiException(
+                  message: message,
+                  statusCode: statusCode,
+                  errorCode: errorType,
+                );
+              }
               return UnauthorizedException(message: message);
             case 409:
               return ApiException(message: message, statusCode: statusCode);
@@ -243,6 +252,13 @@ class ApiClient {
       return data['message'] ?? data['error'] ?? 'An error occurred';
     }
     return 'An error occurred';
+  }
+
+  String _getErrorType(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      return data['error'] ?? 'UNKNOWN';
+    }
+    return 'UNKNOWN';
   }
 
   Map<String, List<String>>? _extractValidationErrors(dynamic data) {

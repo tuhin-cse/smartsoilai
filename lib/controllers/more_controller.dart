@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../screens/settings_screen.dart';
 import '../screens/profile_screen.dart';
+import '../screens/more/privacy_policy_screen.dart';
 import 'auth_controller.dart';
 
 class MoreController extends GetxController {
@@ -17,7 +18,9 @@ class MoreController extends GetxController {
 
   void openSubscription() {}
   void openAbout() {}
-  void openPrivacy() {}
+  void openPrivacy() {
+    Get.to(() => const PrivacyPolicyScreen());
+  }
 
   void logout() {
     final authController = Get.find<AuthController>();
