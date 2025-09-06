@@ -23,8 +23,9 @@ class _SignupScreenState extends State<SignupScreen> {
 
   String _selectedGender = '';
   bool _isLoading = false;
-  bool _autoValidate = false;
 
+  // Track which fields have been touched for individual validation
+  Set<String> _touchedFields = {};
   @override
   void dispose() {
     _fullNameController.dispose();
@@ -37,17 +38,14 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   void initState() {
     super.initState();
-    // Add listeners to trigger validation on text change
-    _fullNameController.addListener(_onFieldChanged);
-    _emailController.addListener(_onFieldChanged);
-    _passwordController.addListener(_onFieldChanged);
-    _confirmPasswordController.addListener(_onFieldChanged);
   }
 
-  void _onFieldChanged() {
-    if (_autoValidate) {
-      _formKey.currentState?.validate();
-    }
+  void _onFieldInteraction(String fieldName) {
+    setState(() {
+      _touchedFields.add(fieldName);
+    });
+    // Trigger validation to show/hide errors for this field
+    _formKey.currentState?.validate();
   }
 
   void _handleBack() {
@@ -55,13 +53,6 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Future<void> _handleSignup() async {
-    // Enable auto validation after first attempt
-    if (!_autoValidate) {
-      setState(() {
-        _autoValidate = true;
-      });
-    }
-
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -78,7 +69,7 @@ class _SignupScreenState extends State<SignupScreen> {
         _fullNameController.text,
         gender: _selectedGender,
       );
-      
+
       // Show OTP dialog
       if (mounted) {
         _showOtpDialog();
@@ -96,10 +87,11 @@ class _SignupScreenState extends State<SignupScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => _OtpDialog(
-        email: _emailController.text,
-        onResendOtp: _resendVerificationCode,
-      ),
+      builder:
+          (context) => _OtpDialog(
+            email: _emailController.text,
+            onResendOtp: _resendVerificationCode,
+          ),
     );
   }
 
@@ -146,10 +138,7 @@ class _SignupScreenState extends State<SignupScreen> {
               right: 20,
               bottom: 16,
             ),
-            decoration: const BoxDecoration(
-              color: Color(0xFFFAFAF8),
-              
-            ),
+            decoration: const BoxDecoration(color: Color(0xFFFAFAF8)),
             child: Row(
               children: [
                 // Back button
@@ -193,7 +182,8 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               child: SingleChildScrollView(
                 padding: EdgeInsets.only(
-                  bottom: viewInsets.bottom + 20, // Add keyboard height + padding
+                  bottom:
+                      viewInsets.bottom + 20, // Add keyboard height + padding
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,9 +220,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Form(
                         key: _formKey,
-                        autovalidateMode: _autoValidate 
-                            ? AutovalidateMode.onUserInteraction 
-                            : AutovalidateMode.disabled,
+                        autovalidateMode: AutovalidateMode.disabled,
                         child: Column(
                           children: [
                             // Full Name Input
@@ -242,7 +230,13 @@ class _SignupScreenState extends State<SignupScreen> {
                               controller: _fullNameController,
                               keyboardType: TextInputType.name,
                               enableInteractiveSelection: true,
+                              onChanged:
+                                  (value) => _onFieldInteraction('fullName'),
                               validator: (value) {
+                                // Only validate if this field has been touched
+                                if (!_touchedFields.contains('fullName')) {
+                                  return null;
+                                }
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your full name';
                                 }
@@ -261,6 +255,8 @@ class _SignupScreenState extends State<SignupScreen> {
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
                               enableInteractiveSelection: true,
+                              onChanged:
+                                  (value) => _onFieldInteraction('email'),
                               onSelectionChanged: (selection, cause) {
                                 // Optional: Track text selection for analytics
                                 if (selection.start != selection.end) {
@@ -269,6 +265,10 @@ class _SignupScreenState extends State<SignupScreen> {
                                 }
                               },
                               validator: (value) {
+                                // Only validate if this field has been touched
+                                if (!_touchedFields.contains('email')) {
+                                  return null;
+                                }
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your email';
                                 }
@@ -313,16 +313,22 @@ class _SignupScreenState extends State<SignupScreen> {
                                   ),
                                 ),
                               ],
-                              initialValue: _selectedGender.isEmpty
-                                  ? null
-                                  : _selectedGender,
+                              initialValue:
+                                  _selectedGender.isEmpty
+                                      ? null
+                                      : _selectedGender,
                               validator: (value) {
+                                // Only validate if this field has been touched
+                                if (!_touchedFields.contains('gender')) {
+                                  return null;
+                                }
                                 if (value == null || value.isEmpty) {
                                   return 'Please select your gender';
                                 }
                                 return null;
                               },
                               onChanged: (value) {
+                                _onFieldInteraction('gender');
                                 setState(() {
                                   _selectedGender = value ?? '';
                                 });
@@ -336,8 +342,15 @@ class _SignupScreenState extends State<SignupScreen> {
                               hintText: 'Enter your password',
                               isPassword: true,
                               controller: _passwordController,
-                              enableInteractiveSelection: false, // Disabled for security
+                              enableInteractiveSelection:
+                                  false, // Disabled for security
+                              onChanged:
+                                  (value) => _onFieldInteraction('password'),
                               validator: (value) {
+                                // Only validate if this field has been touched
+                                if (!_touchedFields.contains('password')) {
+                                  return null;
+                                }
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your password';
                                 }
@@ -360,8 +373,18 @@ class _SignupScreenState extends State<SignupScreen> {
                               hintText: 'Re-enter your password',
                               isPassword: true,
                               controller: _confirmPasswordController,
-                              enableInteractiveSelection: false, // Disabled for security
+                              enableInteractiveSelection:
+                                  false, // Disabled for security
+                              onChanged:
+                                  (value) =>
+                                      _onFieldInteraction('confirmPassword'),
                               validator: (value) {
+                                // Only validate if this field has been touched
+                                if (!_touchedFields.contains(
+                                  'confirmPassword',
+                                )) {
+                                  return null;
+                                }
                                 if (value == null || value.isEmpty) {
                                   return 'Please confirm your password';
                                 }
@@ -374,7 +397,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
                             // Verification Code Field (shown after initial signup attempt)
                             // Removed - now using dialog
-
                             const SizedBox(height: 40),
 
                             PrimaryButton(
@@ -519,10 +541,7 @@ class _OtpDialog extends StatefulWidget {
   final String email;
   final VoidCallback onResendOtp;
 
-  const _OtpDialog({
-    required this.email,
-    required this.onResendOtp,
-  });
+  const _OtpDialog({required this.email, required this.onResendOtp});
 
   @override
   State<_OtpDialog> createState() => _OtpDialogState();
@@ -555,7 +574,7 @@ class _OtpDialogState extends State<_OtpDialog> {
   void _handleOtpCompleted(String otp) {
     // Cancel any existing timer
     _debounceTimer?.cancel();
-    
+
     // Set a new timer to debounce rapid successive calls
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
       _verifyOtp(otp);
@@ -572,7 +591,7 @@ class _OtpDialogState extends State<_OtpDialog> {
 
     try {
       final authController = Get.find<AuthController>();
-      
+
       await authController.verifySignupOtp(widget.email, otp);
 
       if (mounted && authController.isAuthenticated) {
@@ -623,11 +642,11 @@ class _OtpDialogState extends State<_OtpDialog> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     // Responsive sizing
     final dialogWidth = screenWidth > 400 ? 350.0 : screenWidth * 0.9;
     final pinSize = screenWidth > 400 ? 50.0 : (screenWidth * 0.9 - 100) / 6;
-    
+
     final defaultPinTheme = PinTheme(
       width: pinSize,
       height: pinSize,
@@ -684,9 +703,7 @@ class _OtpDialogState extends State<_OtpDialog> {
       insetPadding: const EdgeInsets.all(20),
       child: Container(
         width: dialogWidth,
-        constraints: BoxConstraints(
-          maxHeight: screenHeight * 0.8,
-        ),
+        constraints: BoxConstraints(maxHeight: screenHeight * 0.8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -757,10 +774,7 @@ class _OtpDialogState extends State<_OtpDialog> {
                 // Description
                 Text(
                   'Enter the 6-digit code sent to',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 4),
@@ -807,7 +821,9 @@ class _OtpDialogState extends State<_OtpDialog> {
                           height: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 3,
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF10B981),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -830,10 +846,7 @@ class _OtpDialogState extends State<_OtpDialog> {
                     children: [
                       Text(
                         'Didn\'t receive the code? ',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                       GestureDetector(
                         onTap: _isResending ? null : _handleResendOtp,
@@ -841,9 +854,10 @@ class _OtpDialogState extends State<_OtpDialog> {
                           _isResending ? 'Sending...' : 'Resend',
                           style: TextStyle(
                             fontSize: 14,
-                            color: _isResending 
-                                ? Colors.grey[400]
-                                : const Color(0xFF10B981),
+                            color:
+                                _isResending
+                                    ? Colors.grey[400]
+                                    : const Color(0xFF10B981),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
